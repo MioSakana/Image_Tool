@@ -1,0 +1,6 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\86189\\.conda\\envs\\py311\\python.exe",
+    "python.pythonPath": "C:\\Users\\86189\\.conda\\envs\\py311\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.shellIntegration.enabled": true
+}
