@@ -32,13 +32,6 @@
 
 ## 开始使用
 
-目前使用方法，你只需下载本项目源码，找到main.py，运行即可。
-
-weights下的模型包括扭曲矫正、清晰增强以及切边增强三个，百度网盘下载：
-
-链接: https://pan.baidu.com/s/1Ty_JSYcauRX0MiIRuhxx_w 提取码: 92vb
-
-遇到任何问题，请提 [Issue](https://github.com/jiangnanboy/Doc-Image-Tool/issues) ，我会尽可能帮助你。
 
 ### 漂白
 对文档图像进行漂白。
@@ -102,12 +95,6 @@ function_method
 ```
 ---
 
-## 赞助
-
-Doc-Image-Tool 项目主要由作者 [jiangnanboy](https://github.com/jiangnanboy) 用业余时间在开发和维护。如果您喜欢这款软件，欢迎赞助，这也是作者的动力之一。
-
-- 国内用户可通过 [爱发电](https://afdian.com/a/jiangnanboy) 赞助作者。
-
 ## 开发计划
 
 <details>
@@ -144,10 +131,3 @@ Doc-Image-Tool 项目主要由作者 [jiangnanboy](https://github.com/jiangnanbo
 - [ ] 加入文档图像多模态问答功能。
 
 </details>
-
-## Contact
-如有问题，联系我：
-
-1、github：https://github.com/jiangnanboy
-
-2、QQ:2229029156
