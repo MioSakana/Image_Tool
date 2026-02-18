@@ -32,7 +32,7 @@
 
 ## usage
 
-To use the current method, you just download the source code of this project, find main.py, and run it.
+To run the web app, download the source code, then run `python -m uvicorn web.app:app --host 127.0.0.1 --port 8000` in the project root and open http://127.0.0.1:8000/ .
 
 The weights model includes distortion correction, clarity enhancement and cutting edge enhancement.Baidu web disk download:
 

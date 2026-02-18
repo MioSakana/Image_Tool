@@ -24,7 +24,12 @@ def load(wc_model_path, bm_model_path):
 
     wc_model = get_model_stage_one(wc_n_classes, in_channels=3)
     if DEVICE.type == 'cpu':
-        wc_state = convert_state_dict(torch.load(wc_model_path, map_location='cpu')['model_state'])
+        try:
+            wc_state = convert_state_dict(torch.load(wc_model_path, map_location='cpu')['model_state'])
+            print("翘曲校正模型加载成功")
+        except Exception as e:
+            print(f"警告：翘曲校正模型加载失败 ({wc_model_path})，错误: {e}")
+            wc_state = None  # 或设置一个标志，后续逻辑跳过该功能    
     else:
         wc_state = convert_state_dict(torch.load(wc_model_path)['model_state'])
     wc_model.load_state_dict(wc_state)
