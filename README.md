@@ -32,7 +32,7 @@
 
 ## 开始使用
 
-目前使用方法：下载本项目源码后，在项目根目录运行 `python -m uvicorn web.app:app --host 127.0.0.1 --port 8000`，然后访问 http://127.0.0.1:8000/ 。
+目前使用方法，你只需下载本项目源码，找到main.py，运行即可。
 
 weights下的模型包括扭曲矫正、清晰增强以及切边增强三个，百度网盘下载：
 
@@ -102,12 +102,6 @@ function_method
 ```
 ---
 
-## 赞助
-
-Doc-Image-Tool 项目主要由作者 [jiangnanboy](https://github.com/jiangnanboy) 用业余时间在开发和维护。如果您喜欢这款软件，欢迎赞助，这也是作者的动力之一。
-
-- 国内用户可通过 [爱发电](https://afdian.com/a/jiangnanboy) 赞助作者。
-
 ## 开发计划
 
 <details>
@@ -144,10 +138,3 @@ Doc-Image-Tool 项目主要由作者 [jiangnanboy](https://github.com/jiangnanbo
 - [ ] 加入文档图像多模态问答功能。
 
 </details>
-
-## Contact
-如有问题，联系我：
-
-1、github：https://github.com/jiangnanboy
-
-2、QQ:2229029156
