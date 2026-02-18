@@ -2,56 +2,233 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <title>Doc-Image-Tool Web 原型</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Doc-Image-Tool Web</title>
     <style>
-      body{font-family:Inter,Arial,Helvetica,sans-serif;margin:20px;color:#222}
-      .row{display:flex;gap:12px;align-items:center}
-      label{display:block;margin-top:8px}
-      #result{max-width:100%;border:1px solid #eee;padding:6px;background:#fafafa}
-      .jobs{margin-top:18px;border-collapse:collapse;width:100%}
-      .jobs th,.jobs td{border:1px solid #eee;padding:8px;text-align:left}
-      .smallimg{height:80px;border:1px solid #ccc}
-      button{padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
-      button.primary{background:#0b66ff;color:#fff;border-color:#0b66ff}
-      .spinner{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#0b66ff;border-radius:50%;animation:spin 1s linear infinite}
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+      :root{
+        --bg-a:#f8f4ea;
+        --bg-b:#e5efff;
+        --card:#ffffffd9;
+        --text:#1f2937;
+        --muted:#64748b;
+        --line:#d7deea;
+        --brand:#0b66ff;
+        --brand-2:#0ea5a4;
+        --danger:#c62828;
+        --ok:#2e7d32;
+        --shadow:0 14px 42px rgba(12,35,64,.13);
+        --radius:16px;
+      }
+
+      *{box-sizing:border-box}
+      body{
+        margin:0;
+        min-height:100vh;
+        color:var(--text);
+        font-family:"Noto Sans SC","Space Grotesk",sans-serif;
+        background:
+          radial-gradient(circle at 10% 10%, #fff7cf 0, transparent 40%),
+          radial-gradient(circle at 90% 0%, #d6f4ff 0, transparent 36%),
+          linear-gradient(130deg,var(--bg-a),var(--bg-b));
+      }
+
+      .wrap{width:min(1160px,94vw);margin:34px auto 48px;animation:in .55s ease}
+      @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+      .hero{
+        display:flex;justify-content:space-between;gap:16px;align-items:flex-end;
+        margin-bottom:18px
+      }
+      h1{
+        margin:0;
+        font-family:"Space Grotesk","Noto Sans SC",sans-serif;
+        font-size:clamp(1.4rem,2.7vw,2.05rem);
+        letter-spacing:.2px
+      }
+      .sub{margin-top:6px;color:var(--muted);font-size:.95rem}
+
+      .card{
+        background:var(--card);
+        border:1px solid #fff;
+        border-radius:var(--radius);
+        box-shadow:var(--shadow);
+        backdrop-filter:blur(6px);
+      }
+
+      .controls{
+        display:grid;
+        grid-template-columns:1.3fr 1fr auto auto auto;
+        gap:10px;
+        padding:14px;
+      }
+
+      input[type=file],select{
+        width:100%;
+        border:1px solid var(--line);
+        border-radius:12px;
+        background:#fff;
+        color:var(--text);
+        min-height:42px;
+        padding:8px 10px;
+      }
+
+      .mode{
+        display:flex;gap:10px;align-items:center;
+        border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff
+      }
+      .mode label{display:flex;gap:6px;align-items:center;font-size:.92rem}
+
+      button,.link-btn{
+        border:1px solid var(--line);
+        border-radius:12px;
+        min-height:42px;
+        padding:0 14px;
+        background:#fff;
+        color:var(--text);
+        cursor:pointer;
+        font-weight:600;
+        transition:.2s ease;
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+      }
+      button:hover,.link-btn:hover{transform:translateY(-1px);border-color:#bdd0fb}
+      .primary{
+        border-color:transparent;
+        color:#fff;
+        background:linear-gradient(120deg,var(--brand),#145be8 45%,#1f7af8);
+      }
+      .ghost{background:#f8fbff}
+      .link-btn{font-size:.9rem;min-height:34px;padding:0 10px}
+
+      #statusArea{
+        margin-top:10px;padding:0 4px;color:var(--muted);min-height:22px;
+        display:flex;align-items:center;gap:8px
+      }
+      .spinner{
+        width:14px;height:14px;border:2px solid #bdd0fb;border-top-color:var(--brand);
+        border-radius:50%;animation:spin .8s linear infinite
+      }
       @keyframes spin{to{transform:rotate(360deg)}}
+
+      .main{
+        display:grid;
+        grid-template-columns:1.15fr .85fr;
+        gap:14px;
+        margin-top:12px;
+      }
+      .pane{padding:14px}
+      .pane h3{margin:0 0 10px 0;font-size:1.04rem}
+      .result-box{
+        min-height:260px;border:1px dashed #c7d6f4;border-radius:14px;background:#f8fbff;
+        display:flex;align-items:center;justify-content:center;overflow:hidden
+      }
+      #result{max-width:100%;max-height:58vh;display:block}
+      .result-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+
+      .table-wrap{overflow:auto}
+      .jobs{width:100%;border-collapse:collapse;font-size:.93rem}
+      .jobs th{
+        text-align:left;background:#f3f7ff;color:#33528a;position:sticky;top:0;
+        font-weight:700
+      }
+      .jobs th,.jobs td{padding:9px;border-bottom:1px solid #e6edf8;vertical-align:middle}
+      .jobs tbody tr{animation:rowIn .35s ease}
+      @keyframes rowIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+      .smallimg{width:120px;max-height:78px;object-fit:cover;border-radius:8px;border:1px solid #cfe0ff;background:#fff}
+      .ops{display:flex;gap:8px;flex-wrap:wrap}
+
+      .foot{
+        margin-top:12px;display:flex;justify-content:flex-end
+      }
+
+      .toast{
+        position:fixed;right:16px;top:16px;z-index:9999;display:none;
+        color:#fff;padding:11px 14px;border-radius:10px;
+        box-shadow:0 8px 24px rgba(0,0,0,.22);animation:toastIn .2s ease
+      }
+      .toast.ok{background:var(--ok)}
+      .toast.err{background:var(--danger)}
+      @keyframes toastIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+      @media (max-width:1000px){
+        .controls{grid-template-columns:1fr 1fr}
+        .main{grid-template-columns:1fr}
+        .foot{justify-content:stretch}
+        .foot button{width:100%}
+      }
     </style>
   </head>
   <body>
-    <h2>Doc-Image-Tool Web 原型</h2>
+    <div class="wrap">
+      <div class="hero">
+        <div>
+          <h1>Doc-Image-Tool</h1>
+          <div class="sub">文档图像处理与分享</div>
+        </div>
+      </div>
 
-    <div class="row">
-      <input id="file" type="file" accept="image/*">
-      <select id="action">
-        <option value="bleach">漂白</option>
-        <option value="orientation">文字方向矫正</option>
-        <option value="sharpen">清晰增强</option>
-        <option value="denoise">笔记去噪美化</option>
-        <option value="shadow">去阴影</option>
-        <option value="dewarp">扭曲矫正</option>
-        <option value="trim">切边增强</option>
-      </select>
-      <label style="margin:0"><input type="radio" name="mode" value="sync" checked> 同步</label>
-      <label style="margin:0"><input type="radio" name="mode" value="async"> 异步</label>
-      <button id="submit" class="primary">提交</button>
-      <button id="clearAll">清空结果</button>
+      <section class="card controls">
+        <input id="file" type="file" accept="image/*">
+        <select id="action">
+          <option value="bleach">漂白</option>
+          <option value="orientation">文字方向矫正</option>
+          <option value="sharpen">清晰增强</option>
+          <option value="denoise">笔记去噪美化</option>
+          <option value="shadow">去阴影</option>
+          <option value="dewarp">扭曲矫正</option>
+          <option value="trim">切边增强</option>
+        </select>
+        <div class="mode">
+          <label><input type="radio" name="mode" value="sync" checked> 即时处理</label>
+          <label><input type="radio" name="mode" value="async"> 后台处理（可批量）</label>
+        </div>
+        <button id="submit" class="primary">提交</button>
+        <button id="clearAll" class="ghost">清空结果</button>
+      </section>
+
+      <div id="statusArea"></div>
+
+      <section class="main">
+        <div class="card pane">
+          <h3>单次结果</h3>
+          <div class="result-box">
+            <img id="result" alt="result" />
+          </div>
+          <div class="result-actions">
+            <a id="downloadSingle" class="link-btn" style="display:none"></a>
+            <a id="shareSingle" class="link-btn" style="display:none"></a>
+          </div>
+        </div>
+
+        <div class="card pane">
+          <h3>任务列表</h3>
+          <div class="table-wrap">
+            <table class="jobs" id="jobsTable">
+              <thead>
+                <tr>
+                  <th>Job ID</th>
+                  <th>动作</th>
+                  <th>状态</th>
+                  <th>预览</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div class="foot">
+        <button id="downloadAll" class="primary">下载本次全部结果 (ZIP)</button>
+      </div>
     </div>
 
-    <div id="statusArea" style="margin-top:12px"></div>
-
-    <h3 style="margin-top:18px">单次结果</h3>
-    <div id="singleResult"> <img id="result" alt="result"/> <a id="downloadSingle" style="display:none;margin-left:8px"></a> </div>
-
-    <h3 style="margin-top:18px">任务列表</h3>
-    <table class="jobs" id="jobsTable">
-      <thead><tr><th>Job ID</th><th>动作</th><th>状态</th><th>预览</th><th>操作</th></tr></thead>
-      <tbody></tbody>
-    </table>
-
-    <div style="margin-top:12px">
-      <button id="downloadAll">下载全部结果 (ZIP)</button>
-    </div>
+    <div id="toast" class="toast"></div>
 
     <script>
       const submitBtn = document.getElementById('submit');
@@ -60,11 +237,72 @@
       const statusArea = document.getElementById('statusArea');
       const jobsTableBody = document.querySelector('#jobsTable tbody');
       const singleResult = document.getElementById('result');
+      const downloadSingle = document.getElementById('downloadSingle');
+      const shareSingle = document.getElementById('shareSingle');
+      const toast = document.getElementById('toast');
 
-      const jobs = {}; // job_id -> {action, intervalId}
+      const jobs = {};
+      const sessionResultIds = new Set();
+      const asyncResultIds = new Set();
 
       function setStatus(msg, busy=false){
-        statusArea.innerHTML = busy ? `<span class="spinner"></span> ${msg}` : msg;
+        statusArea.innerHTML = busy ? `<span class="spinner"></span>${msg}` : msg;
+      }
+
+      let toastTimer = null;
+      function showToast(msg, ok=true){
+        toast.textContent = msg;
+        toast.className = `toast ${ok ? 'ok' : 'err'}`;
+        toast.style.display = 'block';
+        if(toastTimer){ clearTimeout(toastTimer); }
+        toastTimer = setTimeout(()=>{ toast.style.display = 'none'; }, 2200);
+      }
+
+      async function copyText(text){
+        if(navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+
+      async function createShareLink(resultId){
+        const res = await fetch('/share', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({result_id: resultId})
+        });
+        if(!res.ok){
+          throw new Error(await res.text());
+        }
+        const js = await res.json();
+        return js.share_url;
+      }
+
+      function bindShareAction(el, resultId){
+        el.href = '#';
+        el.textContent = '分享';
+        el.style.display = 'inline-flex';
+        el.onclick = async (ev)=>{
+          ev.preventDefault();
+          try{
+            const shareUrl = await createShareLink(resultId);
+            await copyText(shareUrl);
+            setStatus('分享链接已复制: ' + shareUrl);
+            showToast('分享链接已复制');
+          }catch(err){
+            setStatus('生成分享链接失败: ' + err);
+            showToast('分享链接生成或复制失败', false);
+          }
+        };
       }
 
       async function pollStatus(jobId, row){
@@ -75,19 +313,21 @@
           row.querySelector('.st').textContent = st;
           if(st === 'finished'){
             clearInterval(jobs[jobId].intervalId);
-            // fetch result
+            sessionResultIds.add(jobId);
+            asyncResultIds.add(jobId);
             const res = await fetch(`/result/${jobId}`);
             if(res.ok){
               const blob = await res.blob();
               const url = URL.createObjectURL(blob);
               row.querySelector('.preview').src = url;
-                  const dl = row.querySelector('.download');
-                  dl.href = `/download/${jobId}`;
-                  dl.setAttribute('download', `${jobId}.jpg`);
-                  dl.style.display = 'inline-block';
-                  dl.textContent = '下载';
+              const dl = row.querySelector('.download');
+              dl.href = `/download/${jobId}`;
+              dl.setAttribute('download', `${jobId}.jpg`);
+              dl.style.display = 'inline-flex';
+              dl.textContent = '下载';
+              bindShareAction(row.querySelector('.share'), jobId);
             }
-          } else if(st === 'error'){
+          }else if(st === 'error'){
             clearInterval(jobs[jobId].intervalId);
           }
         }catch(e){
@@ -98,7 +338,7 @@
 
       submitBtn.onclick = async ()=>{
         const f = fileInput.files[0];
-        if(!f){alert('请选择图片');return}
+        if(!f){ showToast('请先选择图片', false); return; }
         const mode = document.querySelector('input[name=mode]:checked').value;
         const action = actionSel.value;
         const fd = new FormData();
@@ -109,47 +349,67 @@
         try{
           if(mode === 'sync'){
             const res = await fetch('/process', {method:'POST', body:fd});
-            if(!res.ok){setStatus('处理失败: '+await res.text());return}
-              const blob = await res.blob();
-              const url = URL.createObjectURL(blob);
-              singleResult.src = url;
-              const dlSingle = document.getElementById('downloadSingle');
-              dlSingle.href = url;
-              dlSingle.setAttribute('download', 'result.jpg');
-              dlSingle.style.display = 'inline-block';
-              dlSingle.textContent = '下载';
-              setStatus('同步处理完成');
-          } else {
+            if(!res.ok){ setStatus('处理失败: ' + await res.text()); return; }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const resultId = res.headers.get('x-result-id');
+            if(resultId){ sessionResultIds.add(resultId); }
+            singleResult.src = url;
+            downloadSingle.href = resultId ? `/download/${resultId}` : url;
+            downloadSingle.setAttribute('download', resultId ? `${resultId}.jpg` : 'result.jpg');
+            downloadSingle.style.display = 'inline-flex';
+            downloadSingle.textContent = '下载';
+            if(resultId){ bindShareAction(shareSingle, resultId); } else { shareSingle.style.display = 'none'; }
+            setStatus('即时处理完成');
+          }else{
             const res = await fetch('/process_async', {method:'POST', body:fd});
-            if(!res.ok){setStatus('提交失败: '+await res.text());return}
+            if(!res.ok){ setStatus('提交失败: ' + await res.text()); return; }
             const js = await res.json();
             const jobId = js.job_id;
-            setStatus('已提交 '+jobId);
-            // add row
+            setStatus('已加入后台任务 ' + jobId);
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${jobId}</td><td>${action}</td><td class="st">queued</td><td><img class="preview smallimg"/></td><td><a class="download" style="display:none"></a></td>`;
+            tr.innerHTML = `<td>${jobId}</td><td>${action}</td><td class="st">queued</td><td><img class="preview smallimg"/></td><td><div class="ops"><a class="download link-btn" style="display:none"></a><a class="share link-btn" style="display:none"></a></div></td>`;
             jobsTableBody.prepend(tr);
-            // start polling
-            jobs[jobId] = {action, intervalId: setInterval(()=>pollStatus(jobId,tr), 1000)};
+            jobs[jobId] = {action, intervalId: setInterval(()=>pollStatus(jobId, tr), 1000)};
           }
         }catch(e){
-          setStatus('请求错误: '+e);
+          setStatus('请求错误: ' + e);
         }finally{
-          setTimeout(()=>setStatus(''), 1200);
+          setTimeout(()=>setStatus(''), 1500);
         }
-      }
+      };
 
       document.getElementById('clearAll').onclick = async ()=>{
+        const ids = [...sessionResultIds];
+        if(ids.length){
+          await fetch('/clear_results', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ids})
+          });
+        }
+        Object.keys(jobs).forEach((jobId)=>{
+          clearInterval(jobs[jobId].intervalId);
+          delete jobs[jobId];
+        });
+        sessionResultIds.clear();
+        asyncResultIds.clear();
         jobsTableBody.innerHTML = '';
         singleResult.src = '';
-        const dlSingle = document.getElementById('downloadSingle');
-        dlSingle.style.display = 'none';
+        downloadSingle.style.display = 'none';
+        shareSingle.style.display = 'none';
         setStatus('已清空');
-      }
+      };
 
       document.getElementById('downloadAll').onclick = async ()=>{
-        const res = await fetch('/download_all');
-        if(!res.ok){ alert('没有可下载的文件'); return }
+        const ids = [...asyncResultIds];
+        if(!ids.length){ showToast('没有可下载的文件', false); return; }
+        const res = await fetch('/download_all', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ids})
+        });
+        if(!res.ok){ showToast('没有可下载的文件', false); return; }
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -159,7 +419,7 @@
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
-      }
+      };
     </script>
   </body>
 </html>
