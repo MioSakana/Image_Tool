@@ -126,7 +126,30 @@
         min-height:260px;border:1px dashed #c7d6f4;border-radius:14px;background:#f8fbff;
         display:flex;align-items:center;justify-content:center;overflow:hidden
       }
-      #result{max-width:100%;max-height:58vh;display:block}
+      .placeholder{color:var(--muted);font-size:.92rem}
+      .compare{
+        position:relative;width:100%;height:min(58vh,560px);background:#fff;
+        border-radius:12px;overflow:hidden;display:none
+      }
+      .compare img{
+        position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+        user-select:none;pointer-events:none
+      }
+      .compare .after-wrap{
+        position:absolute;inset:0 auto 0 0;width:50%;overflow:hidden
+      }
+      .compare .divider{
+        position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;
+        box-shadow:0 0 0 1px rgba(11,102,255,.2)
+      }
+      .compare .divider::after{
+        content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+        width:30px;height:30px;border-radius:999px;background:#0b66ff;border:2px solid #fff;
+        box-shadow:0 4px 16px rgba(11,102,255,.35)
+      }
+      .compare input[type=range]{
+        position:absolute;left:0;right:0;bottom:12px;margin:0 auto;width:min(82%,540px);
+      }
       .result-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
 
       .table-wrap{overflow:auto}
@@ -196,7 +219,15 @@
         <div class="card pane">
           <h3>单次结果</h3>
           <div class="result-box">
-            <img id="result" alt="result" />
+            <div id="resultPlaceholder" class="placeholder">即时处理完成后可拖动滑块对比原图与结果</div>
+            <div id="compareBox" class="compare">
+              <img id="beforeImg" alt="before" />
+              <div id="afterWrap" class="after-wrap">
+                <img id="result" alt="result" />
+              </div>
+              <div id="compareDivider" class="divider"></div>
+              <input id="compareSlider" type="range" min="0" max="100" value="50" />
+            </div>
           </div>
           <div class="result-actions">
             <a id="downloadSingle" class="link-btn" style="display:none"></a>
@@ -236,7 +267,13 @@
       const actionSel = document.getElementById('action');
       const statusArea = document.getElementById('statusArea');
       const jobsTableBody = document.querySelector('#jobsTable tbody');
-      const singleResult = document.getElementById('result');
+      const resultImg = document.getElementById('result');
+      const beforeImg = document.getElementById('beforeImg');
+      const compareBox = document.getElementById('compareBox');
+      const compareSlider = document.getElementById('compareSlider');
+      const compareDivider = document.getElementById('compareDivider');
+      const afterWrap = document.getElementById('afterWrap');
+      const resultPlaceholder = document.getElementById('resultPlaceholder');
       const downloadSingle = document.getElementById('downloadSingle');
       const shareSingle = document.getElementById('shareSingle');
       const toast = document.getElementById('toast');
@@ -244,10 +281,28 @@
       const jobs = {};
       const sessionResultIds = new Set();
       const asyncResultIds = new Set();
+      let sourcePreviewUrl = null;
+      let resultPreviewUrl = null;
 
       function setStatus(msg, busy=false){
         statusArea.innerHTML = busy ? `<span class="spinner"></span>${msg}` : msg;
       }
+
+      function setCompareRatio(v){
+        const ratio = Math.max(0, Math.min(100, Number(v) || 50));
+        afterWrap.style.width = ratio + '%';
+        compareDivider.style.left = ratio + '%';
+      }
+      setCompareRatio(50);
+      compareSlider.addEventListener('input', ()=>setCompareRatio(compareSlider.value));
+
+      fileInput.addEventListener('change', ()=>{
+        const f = fileInput.files[0];
+        if(!f){ return; }
+        if(sourcePreviewUrl){ URL.revokeObjectURL(sourcePreviewUrl); }
+        sourcePreviewUrl = URL.createObjectURL(f);
+        beforeImg.src = sourcePreviewUrl;
+      });
 
       let toastTimer = null;
       function showToast(msg, ok=true){
@@ -354,7 +409,12 @@
             const url = URL.createObjectURL(blob);
             const resultId = res.headers.get('x-result-id');
             if(resultId){ sessionResultIds.add(resultId); }
-            singleResult.src = url;
+            if(resultPreviewUrl){ URL.revokeObjectURL(resultPreviewUrl); }
+            resultPreviewUrl = url;
+            resultImg.src = url;
+            compareBox.style.display = 'block';
+            resultPlaceholder.style.display = 'none';
+            setCompareRatio(compareSlider.value);
             downloadSingle.href = resultId ? `/download/${resultId}` : url;
             downloadSingle.setAttribute('download', resultId ? `${resultId}.jpg` : 'result.jpg');
             downloadSingle.style.display = 'inline-flex';
@@ -395,7 +455,10 @@
         sessionResultIds.clear();
         asyncResultIds.clear();
         jobsTableBody.innerHTML = '';
-        singleResult.src = '';
+        if(resultPreviewUrl){ URL.revokeObjectURL(resultPreviewUrl); resultPreviewUrl = null; }
+        resultImg.src = '';
+        compareBox.style.display = 'none';
+        resultPlaceholder.style.display = 'block';
         downloadSingle.style.display = 'none';
         shareSingle.style.display = 'none';
         setStatus('已清空');
