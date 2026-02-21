@@ -6,483 +6,109 @@
     <title>Doc-Image-Tool Web</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
-
-      :root{
-        --bg-a:#f8f4ea;
-        --bg-b:#e5efff;
-        --card:#ffffffd9;
-        --text:#1f2937;
-        --muted:#64748b;
-        --line:#d7deea;
-        --brand:#0b66ff;
-        --brand-2:#0ea5a4;
-        --danger:#c62828;
-        --ok:#2e7d32;
-        --shadow:0 14px 42px rgba(12,35,64,.13);
-        --radius:16px;
-      }
-
-      *{box-sizing:border-box}
-      body{
-        margin:0;
-        min-height:100vh;
-        color:var(--text);
-        font-family:"Noto Sans SC","Space Grotesk",sans-serif;
-        background:
-          radial-gradient(circle at 10% 10%, #fff7cf 0, transparent 40%),
-          radial-gradient(circle at 90% 0%, #d6f4ff 0, transparent 36%),
-          linear-gradient(130deg,var(--bg-a),var(--bg-b));
-      }
-
-      .wrap{width:min(1160px,94vw);margin:34px auto 48px;animation:in .55s ease}
-      @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-
-      .hero{
-        display:flex;justify-content:space-between;gap:16px;align-items:flex-end;
-        margin-bottom:18px
-      }
-      h1{
-        margin:0;
-        font-family:"Space Grotesk","Noto Sans SC",sans-serif;
-        font-size:clamp(1.4rem,2.7vw,2.05rem);
-        letter-spacing:.2px
-      }
-      .sub{margin-top:6px;color:var(--muted);font-size:.95rem}
-
-      .card{
-        background:var(--card);
-        border:1px solid #fff;
-        border-radius:var(--radius);
-        box-shadow:var(--shadow);
-        backdrop-filter:blur(6px);
-      }
-
-      .controls{
-        display:grid;
-        grid-template-columns:1.3fr 1fr auto auto auto;
-        gap:10px;
-        padding:14px;
-      }
-
-      input[type=file],select{
-        width:100%;
-        border:1px solid var(--line);
-        border-radius:12px;
-        background:#fff;
-        color:var(--text);
-        min-height:42px;
-        padding:8px 10px;
-      }
-
-      .mode{
-        display:flex;gap:10px;align-items:center;
-        border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff
-      }
-      .mode label{display:flex;gap:6px;align-items:center;font-size:.92rem}
-
-      button,.link-btn{
-        border:1px solid var(--line);
-        border-radius:12px;
-        min-height:42px;
-        padding:0 14px;
-        background:#fff;
-        color:var(--text);
-        cursor:pointer;
-        font-weight:600;
-        transition:.2s ease;
-        text-decoration:none;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-      }
-      button:hover,.link-btn:hover{transform:translateY(-1px);border-color:#bdd0fb}
-      .primary{
-        border-color:transparent;
-        color:#fff;
-        background:linear-gradient(120deg,var(--brand),#145be8 45%,#1f7af8);
-      }
-      .ghost{background:#f8fbff}
-      .link-btn{font-size:.9rem;min-height:34px;padding:0 10px}
-
-      #statusArea{
-        margin-top:10px;padding:0 4px;color:var(--muted);min-height:22px;
-        display:flex;align-items:center;gap:8px
-      }
-      .spinner{
-        width:14px;height:14px;border:2px solid #bdd0fb;border-top-color:var(--brand);
-        border-radius:50%;animation:spin .8s linear infinite
-      }
-      @keyframes spin{to{transform:rotate(360deg)}}
-
-      .main{
-        display:grid;
-        grid-template-columns:1.15fr .85fr;
-        gap:14px;
-        margin-top:12px;
-      }
-      .pane{padding:14px}
-      .pane h3{margin:0 0 10px 0;font-size:1.04rem}
-      .result-box{
-        min-height:260px;border:1px dashed #c7d6f4;border-radius:14px;background:#f8fbff;
-        display:flex;align-items:center;justify-content:center;overflow:hidden
-      }
-      .placeholder{color:var(--muted);font-size:.92rem}
-      .compare{
-        position:relative;width:100%;height:min(58vh,560px);background:#fff;
-        border-radius:12px;overflow:hidden;display:none
-      }
-      .compare img{
-        position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
-        user-select:none;pointer-events:none
-      }
-      .compare .after-wrap{
-        position:absolute;inset:0 auto 0 0;width:50%;overflow:hidden
-      }
-      .compare .divider{
-        position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;
-        box-shadow:0 0 0 1px rgba(11,102,255,.2)
-      }
-      .compare .divider::after{
-        content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-        width:30px;height:30px;border-radius:999px;background:#0b66ff;border:2px solid #fff;
-        box-shadow:0 4px 16px rgba(11,102,255,.35)
-      }
-      .compare input[type=range]{
-        position:absolute;left:0;right:0;bottom:12px;margin:0 auto;width:min(82%,540px);
-      }
-      .result-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-
-      .table-wrap{overflow:auto}
-      .jobs{width:100%;border-collapse:collapse;font-size:.93rem}
-      .jobs th{
-        text-align:left;background:#f3f7ff;color:#33528a;position:sticky;top:0;
-        font-weight:700
-      }
-      .jobs th,.jobs td{padding:9px;border-bottom:1px solid #e6edf8;vertical-align:middle}
-      .jobs tbody tr{animation:rowIn .35s ease}
-      @keyframes rowIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
-      .smallimg{width:120px;max-height:78px;object-fit:cover;border-radius:8px;border:1px solid #cfe0ff;background:#fff}
-      .ops{display:flex;gap:8px;flex-wrap:wrap}
-
-      .foot{
-        margin-top:12px;display:flex;justify-content:flex-end
-      }
-
-      .toast{
-        position:fixed;right:16px;top:16px;z-index:9999;display:none;
-        color:#fff;padding:11px 14px;border-radius:10px;
-        box-shadow:0 8px 24px rgba(0,0,0,.22);animation:toastIn .2s ease
-      }
-      .toast.ok{background:var(--ok)}
-      .toast.err{background:var(--danger)}
-      @keyframes toastIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-
-      @media (max-width:1000px){
-        .controls{grid-template-columns:1fr 1fr}
-        .main{grid-template-columns:1fr}
-        .foot{justify-content:stretch}
-        .foot button{width:100%}
-      }
+      :root{--bg-a:#f8f4ea;--bg-b:#e5efff;--card:#ffffffd9;--text:#1f2937;--muted:#64748b;--line:#d7deea;--brand:#0b66ff;--ok:#2e7d32;--warn:#a15d00;--danger:#c62828;--shadow:0 14px 42px rgba(12,35,64,.13)}
+      *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:"Noto Sans SC","Space Grotesk",sans-serif;background:radial-gradient(circle at 10% 10%,#fff7cf 0,transparent 40%),radial-gradient(circle at 90% 0%,#d6f4ff 0,transparent 36%),linear-gradient(130deg,var(--bg-a),var(--bg-b))}
+      .wrap{width:min(1260px,94vw);margin:26px auto 40px}.hero{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}h1{margin:0;font-size:clamp(1.35rem,2.6vw,2.1rem)}.sub{margin-top:6px;color:var(--muted);font-size:.95rem}
+      .card{background:var(--card);border:1px solid #fff;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
+      .controls{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto auto;gap:10px;padding:14px;margin-bottom:10px}.pipeline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px;margin-bottom:10px}.steps{display:flex;gap:7px;align-items:center;flex-wrap:wrap;min-height:34px}
+      .chip{border:1px solid #cfe0ff;background:#f6f9ff;border-radius:999px;padding:4px 10px;display:inline-flex;align-items:center;gap:8px;font-size:.87rem}.chip button{min-height:auto;padding:0;border:none;background:transparent;color:#7b879a}.pipe-tip{color:var(--muted);font-size:.88rem}
+      input[type=file],select,input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);min-height:42px;padding:8px 10px}input[type=checkbox]{accent-color:var(--brand)}
+      .mode{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff}.mode label{display:flex;gap:6px;align-items:center;font-size:.92rem}
+      button,.link-btn{border:1px solid var(--line);border-radius:12px;min-height:42px;padding:0 14px;background:#fff;color:var(--text);cursor:pointer;font-weight:600;transition:.2s ease;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+      button:hover,.link-btn:hover{transform:translateY(-1px);border-color:#bdd0fb}.primary{border-color:transparent;color:#fff;background:linear-gradient(120deg,var(--brand),#145be8 45%,#1f7af8)}.ghost{background:#f8fbff}.danger{background:#fff5f5;border-color:#ffd7d7;color:#a72f2f}.link-btn{font-size:.87rem;min-height:32px;padding:0 9px}
+      #statusArea{margin-top:10px;padding:0 4px;color:var(--muted);min-height:22px;display:flex;align-items:center;gap:8px}.spinner{width:14px;height:14px;border:2px solid #bdd0fb;border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+      .main{display:grid;grid-template-columns:1.03fr .97fr;gap:12px}.pane{padding:14px}.pane h3{margin:0 0 10px 0;font-size:1.04rem}.stats{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:8px;margin-bottom:10px}.stat{border:1px solid #dfe7f6;background:#f8fbff;border-radius:12px;padding:10px}.stat b{display:block;font-size:1.2rem}.stat span{font-size:.85rem;color:var(--muted)}
+      .filters{display:grid;grid-template-columns:1fr 170px 170px auto auto auto auto auto;gap:8px;margin-bottom:8px}.result-box{min-height:260px;border:1px dashed #c7d6f4;border-radius:14px;background:#f8fbff;display:flex;align-items:center;justify-content:center;overflow:hidden}.placeholder{color:var(--muted);font-size:.92rem}
+      .compare{position:relative;width:100%;height:min(58vh,560px);background:#fff;border-radius:12px;overflow:hidden;display:none}.compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;pointer-events:none}.compare .after-wrap{position:absolute;inset:0 auto 0 0;width:50%;overflow:hidden}.compare .divider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(11,102,255,.2)}.compare .divider::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:999px;background:#0b66ff;border:2px solid #fff}.compare input[type=range]{position:absolute;left:0;right:0;bottom:12px;margin:0 auto;width:min(82%,540px)}
+      .result-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.table-wrap{overflow:auto}.jobs{width:100%;border-collapse:collapse;font-size:.91rem}.jobs th{text-align:left;background:#f3f7ff;color:#33528a;position:sticky;top:0;font-weight:700}.jobs th,.jobs td{padding:8px;border-bottom:1px solid #e6edf8;vertical-align:middle}
+      .smallimg{width:100px;max-height:68px;object-fit:cover;border-radius:8px;border:1px solid #cfe0ff;background:#fff}.ops{display:flex;gap:6px;flex-wrap:wrap}.st-finished{color:var(--ok)}.st-error{color:var(--danger)}.st-processing,.st-queued{color:var(--warn)}.muted{color:var(--muted)}
+      .toast{position:fixed;right:16px;top:16px;z-index:9999;display:none;color:#fff;padding:11px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.22)}.toast.ok{background:var(--ok)}.toast.err{background:var(--danger)}
+      @media (max-width:1150px){.controls{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(80px,1fr))}}
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="hero">
-        <div>
-          <h1>Doc-Image-Tool</h1>
-          <div class="sub">文档图像处理与分享</div>
-        </div>
-      </div>
-
+      <div class="hero"><div><h1>Doc-Image-Tool</h1><div class="sub">批量处理、失败重试、流水线模板、耗时排序</div></div></div>
       <section class="card controls">
-        <input id="file" type="file" accept="image/*">
-        <select id="action">
-          <option value="bleach">漂白</option>
-          <option value="orientation">文字方向矫正</option>
-          <option value="sharpen">清晰增强</option>
-          <option value="denoise">笔记去噪美化</option>
-          <option value="shadow">去阴影</option>
-          <option value="dewarp">扭曲矫正</option>
-          <option value="trim">切边增强</option>
-        </select>
-        <div class="mode">
-          <label><input type="radio" name="mode" value="sync" checked> 即时处理</label>
-          <label><input type="radio" name="mode" value="async"> 后台处理（可批量）</label>
-        </div>
-        <button id="submit" class="primary">提交</button>
-        <button id="clearAll" class="ghost">清空结果</button>
+        <input id="file" type="file" accept="image/*" multiple />
+        <select id="actionStep"></select>
+        <select id="pipelineTemplate"></select>
+        <div class="mode"><label><input type="radio" name="mode" value="sync" checked /> 同步</label><label><input type="radio" name="mode" value="async" /> 异步</label></div>
+        <button id="applyTemplate" class="ghost">套用模板</button>
+        <button id="submit" class="primary">提交任务</button>
       </section>
-
+      <section class="card pipeline"><div class="steps" id="steps"></div><button id="addStep" class="ghost">添加步骤</button><button id="clearSteps" class="ghost">清空步骤</button><span class="pipe-tip">示例: 切边 -> 方向矫正 -> 漂白</span></section>
       <div id="statusArea"></div>
-
       <section class="main">
         <div class="card pane">
-          <h3>单次结果</h3>
+          <h3>结果预览</h3>
           <div class="result-box">
-            <div id="resultPlaceholder" class="placeholder">即时处理完成后可拖动滑块对比原图与结果</div>
-            <div id="compareBox" class="compare">
-              <img id="beforeImg" alt="before" />
-              <div id="afterWrap" class="after-wrap">
-                <img id="result" alt="result" />
-              </div>
-              <div id="compareDivider" class="divider"></div>
-              <input id="compareSlider" type="range" min="0" max="100" value="50" />
-            </div>
+            <div id="resultPlaceholder" class="placeholder">同步处理完成后可拖动滑块对比原图与结果图</div>
+            <div id="compareBox" class="compare"><img id="beforeImg" alt="before" /><div id="afterWrap" class="after-wrap"><img id="result" alt="result" /></div><div id="compareDivider" class="divider"></div><input id="compareSlider" type="range" min="0" max="100" value="50" /></div>
           </div>
-          <div class="result-actions">
-            <a id="downloadSingle" class="link-btn" style="display:none"></a>
-            <a id="shareSingle" class="link-btn" style="display:none"></a>
-          </div>
+          <div class="result-actions"><a id="downloadSingle" class="link-btn" style="display:none"></a><a id="shareSingle" class="link-btn" style="display:none"></a></div>
         </div>
-
         <div class="card pane">
           <h3>任务列表</h3>
-          <div class="table-wrap">
-            <table class="jobs" id="jobsTable">
-              <thead>
-                <tr>
-                  <th>Job ID</th>
-                  <th>动作</th>
-                  <th>状态</th>
-                  <th>预览</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <section class="stats"><div class="stat"><b id="stTotal">0</b><span>总任务</span></div><div class="stat"><b id="stRunning">0</b><span>处理中</span></div><div class="stat"><b id="stFinished">0</b><span>已完成</span></div><div class="stat"><b id="stError">0</b><span>失败</span></div></section>
+          <section class="filters">
+            <input id="searchText" type="text" placeholder="按 Job ID / 文件名 / 动作搜索" />
+            <select id="statusFilter"><option value="all">全部状态</option><option value="queued">queued</option><option value="processing">processing</option><option value="finished">finished</option><option value="error">error</option></select>
+            <select id="durationSort"><option value="newest">默认排序</option><option value="dur_desc">耗时高到低</option><option value="dur_asc">耗时低到高</option></select>
+            <button id="retryFailed" class="ghost">重试失败项</button><button id="downloadSelected" class="ghost">下载勾选</button><button id="downloadAll" class="primary">下载全部</button><button id="clearSelected" class="danger">清理勾选</button><button id="clearAll" class="ghost">清理全部</button>
+          </section>
+          <div class="table-wrap"><table class="jobs" id="jobsTable"><thead><tr><th><input id="checkAll" type="checkbox" /></th><th>Job ID</th><th>文件</th><th>动作</th><th>状态</th><th>耗时</th><th>预览</th><th>操作</th></tr></thead><tbody></tbody></table></div>
         </div>
       </section>
-
-      <div class="foot">
-        <button id="downloadAll" class="primary">下载本次全部结果 (ZIP)</button>
-      </div>
     </div>
-
     <div id="toast" class="toast"></div>
-
     <script>
-      const submitBtn = document.getElementById('submit');
-      const fileInput = document.getElementById('file');
-      const actionSel = document.getElementById('action');
-      const statusArea = document.getElementById('statusArea');
-      const jobsTableBody = document.querySelector('#jobsTable tbody');
-      const resultImg = document.getElementById('result');
-      const beforeImg = document.getElementById('beforeImg');
-      const compareBox = document.getElementById('compareBox');
-      const compareSlider = document.getElementById('compareSlider');
-      const compareDivider = document.getElementById('compareDivider');
-      const afterWrap = document.getElementById('afterWrap');
-      const resultPlaceholder = document.getElementById('resultPlaceholder');
-      const downloadSingle = document.getElementById('downloadSingle');
-      const shareSingle = document.getElementById('shareSingle');
-      const toast = document.getElementById('toast');
-
-      const jobs = {};
-      const sessionResultIds = new Set();
-      const asyncResultIds = new Set();
-      let sourcePreviewUrl = null;
-      let resultPreviewUrl = null;
-
-      function setStatus(msg, busy=false){
-        statusArea.innerHTML = busy ? `<span class="spinner"></span>${msg}` : msg;
-      }
-
-      function setCompareRatio(v){
-        const ratio = Math.max(0, Math.min(100, Number(v) || 50));
-        afterWrap.style.width = ratio + '%';
-        compareDivider.style.left = ratio + '%';
-      }
-      setCompareRatio(50);
-      compareSlider.addEventListener('input', ()=>setCompareRatio(compareSlider.value));
-
-      fileInput.addEventListener('change', ()=>{
-        const f = fileInput.files[0];
-        if(!f){ return; }
-        if(sourcePreviewUrl){ URL.revokeObjectURL(sourcePreviewUrl); }
-        sourcePreviewUrl = URL.createObjectURL(f);
-        beforeImg.src = sourcePreviewUrl;
-      });
-
-      let toastTimer = null;
-      function showToast(msg, ok=true){
-        toast.textContent = msg;
-        toast.className = `toast ${ok ? 'ok' : 'err'}`;
-        toast.style.display = 'block';
-        if(toastTimer){ clearTimeout(toastTimer); }
-        toastTimer = setTimeout(()=>{ toast.style.display = 'none'; }, 2200);
-      }
-
-      async function copyText(text){
-        if(navigator.clipboard && window.isSecureContext){
-          await navigator.clipboard.writeText(text);
-          return;
-        }
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-      }
-
-      async function createShareLink(resultId){
-        const res = await fetch('/share', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({result_id: resultId})
-        });
-        if(!res.ok){
-          throw new Error(await res.text());
-        }
-        const js = await res.json();
-        return js.share_url;
-      }
-
-      function bindShareAction(el, resultId){
-        el.href = '#';
-        el.textContent = '分享';
-        el.style.display = 'inline-flex';
-        el.onclick = async (ev)=>{
-          ev.preventDefault();
-          try{
-            const shareUrl = await createShareLink(resultId);
-            await copyText(shareUrl);
-            setStatus('分享链接已复制: ' + shareUrl);
-            showToast('分享链接已复制');
-          }catch(err){
-            setStatus('生成分享链接失败: ' + err);
-            showToast('分享链接生成或复制失败', false);
-          }
-        };
-      }
-
-      async function pollStatus(jobId, row){
-        try{
-          const r = await fetch(`/status/${jobId}`);
-          const js = await r.json();
-          const st = js.status || js;
-          row.querySelector('.st').textContent = st;
-          if(st === 'finished'){
-            clearInterval(jobs[jobId].intervalId);
-            sessionResultIds.add(jobId);
-            asyncResultIds.add(jobId);
-            const res = await fetch(`/result/${jobId}`);
-            if(res.ok){
-              const blob = await res.blob();
-              const url = URL.createObjectURL(blob);
-              row.querySelector('.preview').src = url;
-              const dl = row.querySelector('.download');
-              dl.href = `/download/${jobId}`;
-              dl.setAttribute('download', `${jobId}.jpg`);
-              dl.style.display = 'inline-flex';
-              dl.textContent = '下载';
-              bindShareAction(row.querySelector('.share'), jobId);
-            }
-          }else if(st === 'error'){
-            clearInterval(jobs[jobId].intervalId);
-          }
-        }catch(e){
-          row.querySelector('.st').textContent = 'error';
-          clearInterval(jobs[jobId].intervalId);
-        }
-      }
-
-      submitBtn.onclick = async ()=>{
-        const f = fileInput.files[0];
-        if(!f){ showToast('请先选择图片', false); return; }
-        const mode = document.querySelector('input[name=mode]:checked').value;
-        const action = actionSel.value;
-        const fd = new FormData();
-        fd.append('file', f);
-        fd.append('action', action);
-
-        setStatus('上传中...', true);
-        try{
-          if(mode === 'sync'){
-            const res = await fetch('/process', {method:'POST', body:fd});
-            if(!res.ok){ setStatus('处理失败: ' + await res.text()); return; }
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const resultId = res.headers.get('x-result-id');
-            if(resultId){ sessionResultIds.add(resultId); }
-            if(resultPreviewUrl){ URL.revokeObjectURL(resultPreviewUrl); }
-            resultPreviewUrl = url;
-            resultImg.src = url;
-            compareBox.style.display = 'block';
-            resultPlaceholder.style.display = 'none';
-            setCompareRatio(compareSlider.value);
-            downloadSingle.href = resultId ? `/download/${resultId}` : url;
-            downloadSingle.setAttribute('download', resultId ? `${resultId}.jpg` : 'result.jpg');
-            downloadSingle.style.display = 'inline-flex';
-            downloadSingle.textContent = '下载';
-            if(resultId){ bindShareAction(shareSingle, resultId); } else { shareSingle.style.display = 'none'; }
-            setStatus('即时处理完成');
-          }else{
-            const res = await fetch('/process_async', {method:'POST', body:fd});
-            if(!res.ok){ setStatus('提交失败: ' + await res.text()); return; }
-            const js = await res.json();
-            const jobId = js.job_id;
-            setStatus('已加入后台任务 ' + jobId);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${jobId}</td><td>${action}</td><td class="st">queued</td><td><img class="preview smallimg"/></td><td><div class="ops"><a class="download link-btn" style="display:none"></a><a class="share link-btn" style="display:none"></a></div></td>`;
-            jobsTableBody.prepend(tr);
-            jobs[jobId] = {action, intervalId: setInterval(()=>pollStatus(jobId, tr), 1000)};
-          }
-        }catch(e){
-          setStatus('请求错误: ' + e);
-        }finally{
-          setTimeout(()=>setStatus(''), 1500);
-        }
-      };
-
-      document.getElementById('clearAll').onclick = async ()=>{
-        const ids = [...sessionResultIds];
-        if(ids.length){
-          await fetch('/clear_results', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ids})
-          });
-        }
-        Object.keys(jobs).forEach((jobId)=>{
-          clearInterval(jobs[jobId].intervalId);
-          delete jobs[jobId];
-        });
-        sessionResultIds.clear();
-        asyncResultIds.clear();
-        jobsTableBody.innerHTML = '';
-        if(resultPreviewUrl){ URL.revokeObjectURL(resultPreviewUrl); resultPreviewUrl = null; }
-        resultImg.src = '';
-        compareBox.style.display = 'none';
-        resultPlaceholder.style.display = 'block';
-        downloadSingle.style.display = 'none';
-        shareSingle.style.display = 'none';
-        setStatus('已清空');
-      };
-
-      document.getElementById('downloadAll').onclick = async ()=>{
-        const ids = [...asyncResultIds];
-        if(!ids.length){ showToast('没有可下载的文件', false); return; }
-        const res = await fetch('/download_all', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ids})
-        });
-        if(!res.ok){ showToast('没有可下载的文件', false); return; }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'results.zip';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      };
+      const fallbackActions=["bleach","orientation","sharpen","denoise","shadow","dewarp","trim"];
+      const actionLabels={bleach:"漂白",orientation:"方向矫正",sharpen:"清晰增强",denoise:"手写去噪美化",shadow:"去阴影",dewarp:"扭曲矫正",trim:"切边增强"};
+      const templates=[{name:"自动增强文档",steps:["trim","orientation","bleach"]},{name:"拍照去阴影增强",steps:["shadow","sharpen"]},{name:"手写美化流程",steps:["orientation","denoise","bleach"]}];
+      const submitBtn=document.getElementById("submit");const fileInput=document.getElementById("file");const actionStepSel=document.getElementById("actionStep");const pipelineTemplate=document.getElementById("pipelineTemplate");const applyTemplateBtn=document.getElementById("applyTemplate");const addStepBtn=document.getElementById("addStep");const clearStepsBtn=document.getElementById("clearSteps");const retryFailedBtn=document.getElementById("retryFailed");const durationSortSel=document.getElementById("durationSort");const stepsBox=document.getElementById("steps");const statusArea=document.getElementById("statusArea");const jobsTableBody=document.querySelector("#jobsTable tbody");const checkAll=document.getElementById("checkAll");const searchText=document.getElementById("searchText");const statusFilter=document.getElementById("statusFilter");const resultImg=document.getElementById("result");const beforeImg=document.getElementById("beforeImg");const compareBox=document.getElementById("compareBox");const compareSlider=document.getElementById("compareSlider");const compareDivider=document.getElementById("compareDivider");const afterWrap=document.getElementById("afterWrap");const resultPlaceholder=document.getElementById("resultPlaceholder");const downloadSingle=document.getElementById("downloadSingle");const shareSingle=document.getElementById("shareSingle");const toast=document.getElementById("toast");const stTotal=document.getElementById("stTotal");const stRunning=document.getElementById("stRunning");const stFinished=document.getElementById("stFinished");const stError=document.getElementById("stError");
+      const jobs={};const sessionResultIds=new Set();const pipelineSteps=[];let sourcePreviewUrl=null;let resultPreviewUrl=null;let toastTimer=null;let seq=0;
+      function setStatus(msg,busy=false){statusArea.innerHTML=busy?`<span class="spinner"></span>${msg}`:msg}
+      function showToast(msg,ok=true){toast.textContent=msg;toast.className=`toast ${ok?"ok":"err"}`;toast.style.display="block";if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toast.style.display="none"},2200)}
+      function fmtMs(ms){if(ms===undefined||ms===null||Number.isNaN(ms))return"-";if(ms<1000)return`${ms} ms`;return`${(ms/1000).toFixed(2)} s`}
+      function labelOfAction(action){return actionLabels[action]||action}
+      function setCompareRatio(v){const ratio=Math.max(0,Math.min(100,Number(v)||50));afterWrap.style.width=ratio+"%";compareDivider.style.left=ratio+"%"}
+      setCompareRatio(50);compareSlider.addEventListener("input",()=>setCompareRatio(compareSlider.value));
+      function renderTemplates(){pipelineTemplate.innerHTML=`<option value="">选择模板</option>`;templates.forEach((tpl,idx)=>{const op=document.createElement("option");op.value=String(idx);op.textContent=`${tpl.name}: ${tpl.steps.join(" -> ")}`;pipelineTemplate.appendChild(op)})}
+      function refreshActionSelect(actions){actionStepSel.innerHTML="";actions.forEach((a)=>{const op=document.createElement("option");op.value=a;op.textContent=`${labelOfAction(a)} (${a})`;actionStepSel.appendChild(op)})}
+      function renderSteps(){stepsBox.innerHTML="";if(!pipelineSteps.length){stepsBox.innerHTML='<span class="muted">当前无步骤，默认使用动作下拉框单步处理</span>';return}pipelineSteps.forEach((step,idx)=>{const chip=document.createElement("span");chip.className="chip";chip.innerHTML=`<span>${idx+1}. ${labelOfAction(step)}</span><button title="移除">x</button>`;chip.querySelector("button").onclick=()=>{pipelineSteps.splice(idx,1);renderSteps()};stepsBox.appendChild(chip)})}
+      function buildActionString(){if(pipelineSteps.length)return pipelineSteps.join("|");return actionStepSel.value}
+      function createRow(ctx){const tr=document.createElement("tr");tr.dataset.status=ctx.status||"queued";tr.dataset.elapsed=String(ctx.elapsedMs||0);tr.dataset.seq=String(ctx.seq||0);tr.innerHTML=`<td><input type="checkbox" class="row-check" disabled></td><td class="job-id">${ctx.id}</td><td class="fn">${ctx.filename||"-"}</td><td class="ac">${ctx.action}</td><td class="st st-${ctx.status||"queued"}">${ctx.status||"queued"}</td><td class="dur">${fmtMs(ctx.elapsedMs)}</td><td><img class="preview smallimg" alt="preview"></td><td><div class="ops"><a class="download link-btn" style="display:none"></a><a class="share link-btn" style="display:none"></a><button class="retry ghost" style="display:none;min-height:32px;padding:0 9px">重试</button></div></td>`;jobsTableBody.prepend(tr);ctx.row=tr;bindRetry(ctx);return tr}
+      function bindRetry(ctx){const btn=ctx.row.querySelector(".retry");btn.onclick=async()=>{if(!ctx.file){showToast("该任务无可重试源文件",false);return}btn.disabled=true;await submitAsync([ctx.file],ctx.action,true);btn.disabled=false}}
+      function updateRowStatus(ctx,status){ctx.status=status;const row=ctx.row;row.dataset.status=status;const stCell=row.querySelector(".st");stCell.textContent=status;stCell.className=`st st-${status}`;const retryBtn=row.querySelector(".retry");retryBtn.style.display=(status==="error"&&ctx.file)?"inline-flex":"none"}
+      function updateRowDuration(ctx,elapsedMs){if(elapsedMs===undefined||elapsedMs===null)return;ctx.elapsedMs=Number(elapsedMs)||0;ctx.row.dataset.elapsed=String(ctx.elapsedMs);ctx.row.querySelector(".dur").textContent=fmtMs(ctx.elapsedMs)}
+      function sortRows(){const mode=durationSortSel.value;const rows=Array.from(jobsTableBody.querySelectorAll("tr"));rows.sort((a,b)=>{if(mode==="dur_desc")return Number(b.dataset.elapsed||0)-Number(a.dataset.elapsed||0);if(mode==="dur_asc")return Number(a.dataset.elapsed||0)-Number(b.dataset.elapsed||0);return Number(b.dataset.seq||0)-Number(a.dataset.seq||0)});rows.forEach((row)=>jobsTableBody.appendChild(row))}
+      function applyFiltersAndSort(){const kw=searchText.value.trim().toLowerCase();const st=statusFilter.value;const rows=jobsTableBody.querySelectorAll("tr");rows.forEach((row)=>{const text=row.textContent.toLowerCase();const rowSt=row.dataset.status||"";const hitKw=!kw||text.includes(kw);const hitSt=st==="all"||rowSt===st;row.style.display=hitKw&&hitSt?"":"none"});sortRows()}
+      function updateStats(){let total=0,running=0,finished=0,error=0;Object.values(jobs).forEach((j)=>{total+=1;if(j.status==="finished")finished+=1;else if(j.status==="error")error+=1;else running+=1});stTotal.textContent=total;stRunning.textContent=running;stFinished.textContent=finished;stError.textContent=error}
+      function triggerDownload(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+      async function copyText(text){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return}const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.left="-9999px";document.body.appendChild(ta);ta.focus();ta.select();document.execCommand("copy");ta.remove()}
+      async function createShareLink(resultId){const res=await fetch("/share",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({result_id:resultId})});if(!res.ok)throw new Error(await res.text());const js=await res.json();return js.share_url}
+      function bindShareAction(el,resultId){el.href="#";el.textContent="分享";el.style.display="inline-flex";el.onclick=async(ev)=>{ev.preventDefault();try{const shareUrl=await createShareLink(resultId);await copyText(shareUrl);setStatus("分享链接已复制: "+shareUrl);showToast("分享链接已复制")}catch(err){setStatus("生成分享链接失败: "+err);showToast("分享失败",false)}}}
+      async function finalizeFinishedRow(ctx){if(ctx.row.dataset.ready==="1")return;const res=await fetch(`/result/${ctx.id}`);if(!res.ok)return;const blob=await res.blob();const url=URL.createObjectURL(blob);ctx.row.querySelector(".preview").src=url;ctx.row.dataset.ready="1";sessionResultIds.add(ctx.id);const cb=ctx.row.querySelector(".row-check");cb.disabled=false;cb.value=ctx.id;const dl=ctx.row.querySelector(".download");dl.href=`/download/${ctx.id}`;dl.setAttribute("download",`${ctx.id}.jpg`);dl.style.display="inline-flex";dl.textContent="下载";bindShareAction(ctx.row.querySelector(".share"),ctx.id)}
+      async function pollStatus(jobId){const ctx=jobs[jobId];if(!ctx)return;try{const r=await fetch(`/status/${jobId}`);const js=await r.json();const st=js.status||"queued";updateRowStatus(ctx,st);if(js.elapsed_ms!==undefined)updateRowDuration(ctx,js.elapsed_ms);else if(ctx.startedAt)updateRowDuration(ctx,Date.now()-ctx.startedAt);if(st==="finished"){if(ctx.intervalId)clearInterval(ctx.intervalId);await finalizeFinishedRow(ctx)}else if(st==="error"){if(ctx.intervalId)clearInterval(ctx.intervalId)}}catch(_e){if(ctx.intervalId)clearInterval(ctx.intervalId);updateRowStatus(ctx,"error")}updateStats();applyFiltersAndSort()}
+      async function submitSync(files,action){setStatus(`同步处理中（${files.length} 张）...`,true);for(let i=0;i<files.length;i+=1){const f=files[i];const tempId=`sync-${Date.now()}-${i}`;const ctx={id:tempId,filename:f.name,action,file:f,status:"processing",startedAt:Date.now(),seq:++seq,elapsedMs:0};createRow(ctx);jobs[tempId]=ctx;try{const fd=new FormData();fd.append("file",f);fd.append("action",action);const res=await fetch("/process",{method:"POST",body:fd});if(!res.ok){updateRowStatus(ctx,"error");continue}const rid=res.headers.get("x-result-id")||tempId;const elapsed=Number(res.headers.get("x-elapsed-ms")||0);const blob=await res.blob();const url=URL.createObjectURL(blob);if(resultPreviewUrl)URL.revokeObjectURL(resultPreviewUrl);resultPreviewUrl=url;resultImg.src=url;compareBox.style.display="block";resultPlaceholder.style.display="none";setCompareRatio(compareSlider.value);if(i===0){if(sourcePreviewUrl)URL.revokeObjectURL(sourcePreviewUrl);sourcePreviewUrl=URL.createObjectURL(f);beforeImg.src=sourcePreviewUrl}delete jobs[tempId];ctx.id=rid;jobs[rid]=ctx;ctx.row.querySelector(".job-id").textContent=rid;updateRowDuration(ctx,elapsed);updateRowStatus(ctx,"finished");await finalizeFinishedRow(ctx);downloadSingle.href=`/download/${rid}`;downloadSingle.setAttribute("download",`${rid}.jpg`);downloadSingle.style.display="inline-flex";downloadSingle.textContent="下载当前预览";bindShareAction(shareSingle,rid)}catch(_e){updateRowStatus(ctx,"error");updateRowDuration(ctx,Date.now()-ctx.startedAt)}updateStats();applyFiltersAndSort()}setStatus("同步处理完成")}
+      async function submitAsync(files,action,isRetry=false){const fd=new FormData();files.forEach((f)=>fd.append("files",f));fd.append("action",action);setStatus(`${isRetry?"重试提交中":"提交后台任务中"}（${files.length} 张）...`,true);const res=await fetch("/process_async_batch",{method:"POST",body:fd});if(!res.ok){setStatus("提交失败: "+await res.text());return}const js=await res.json();js.jobs.forEach((item,idx)=>{const f=files[idx];if(item.status==="rejected"){const rid=`reject-${Date.now()}-${idx}`;const ctx={id:rid,filename:item.filename,action,file:f,status:"error",seq:++seq,elapsedMs:0};createRow(ctx);jobs[rid]=ctx;ctx.row.querySelector(".st").textContent=`error (${item.reason})`;return}const ctx={id:item.job_id,filename:item.filename,action,file:f,status:"queued",startedAt:Date.now(),seq:++seq,elapsedMs:0};createRow(ctx);jobs[ctx.id]=ctx;ctx.intervalId=setInterval(()=>pollStatus(ctx.id),1000)});updateStats();applyFiltersAndSort();setStatus(`后台队列已创建 ${js.jobs.length} 项`)}
+      function selectedIds(){const ids=[];jobsTableBody.querySelectorAll(".row-check:checked").forEach((cb)=>{if(cb.value)ids.push(cb.value)});return ids}
+      async function zipDownloadByIds(ids){if(!ids.length){showToast("没有可下载的结果",false);return}const res=await fetch("/download_all",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});if(!res.ok){showToast("下载失败",false);return}const blob=await res.blob();triggerDownload(blob,"results.zip")}
+      fileInput.addEventListener("change",()=>{const f=fileInput.files[0];if(!f)return;if(sourcePreviewUrl)URL.revokeObjectURL(sourcePreviewUrl);sourcePreviewUrl=URL.createObjectURL(f);beforeImg.src=sourcePreviewUrl});
+      searchText.addEventListener("input",applyFiltersAndSort);statusFilter.addEventListener("change",applyFiltersAndSort);durationSortSel.addEventListener("change",applyFiltersAndSort);
+      addStepBtn.onclick=()=>{if(!actionStepSel.value)return;pipelineSteps.push(actionStepSel.value);renderSteps()};
+      clearStepsBtn.onclick=()=>{pipelineSteps.length=0;renderSteps()};
+      applyTemplateBtn.onclick=()=>{const idx=Number(pipelineTemplate.value);if(Number.isNaN(idx))return;const tpl=templates[idx];if(!tpl)return;pipelineSteps.length=0;tpl.steps.forEach((s)=>pipelineSteps.push(s));renderSteps();showToast(`已套用模板: ${tpl.name}`)};
+      retryFailedBtn.onclick=async()=>{const failed=Object.values(jobs).filter((j)=>j.status==="error"&&j.file);if(!failed.length){showToast("没有可重试失败项",false);return}for(const j of failed){await submitAsync([j.file],j.action,true)}showToast(`已提交 ${failed.length} 个失败项重试`)};
+      checkAll.addEventListener("change",()=>{const rows=jobsTableBody.querySelectorAll("tr");rows.forEach((row)=>{if(row.style.display==="none")return;const cb=row.querySelector(".row-check");if(cb&&!cb.disabled)cb.checked=checkAll.checked})});
+      document.getElementById("downloadAll").onclick=()=>zipDownloadByIds([...sessionResultIds]);
+      document.getElementById("downloadSelected").onclick=()=>zipDownloadByIds(selectedIds());
+      document.getElementById("clearSelected").onclick=async()=>{const ids=selectedIds();if(!ids.length){showToast("请先勾选任务",false);return}await fetch("/clear_results",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});ids.forEach((id)=>{sessionResultIds.delete(id);const ctx=jobs[id];if(!ctx)return;if(ctx.intervalId)clearInterval(ctx.intervalId);if(ctx.row)ctx.row.remove();delete jobs[id]});updateStats();applyFiltersAndSort();showToast("已清理勾选结果")};
+      document.getElementById("clearAll").onclick=async()=>{const ids=[...sessionResultIds];if(ids.length){await fetch("/clear_results",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})})}Object.keys(jobs).forEach((id)=>{const ctx=jobs[id];if(ctx.intervalId)clearInterval(ctx.intervalId);if(ctx.row)ctx.row.remove();delete jobs[id]});sessionResultIds.clear();jobsTableBody.innerHTML="";if(resultPreviewUrl)URL.revokeObjectURL(resultPreviewUrl);resultPreviewUrl=null;resultImg.src="";compareBox.style.display="none";resultPlaceholder.style.display="block";downloadSingle.style.display="none";shareSingle.style.display="none";checkAll.checked=false;updateStats();setStatus("已清空")};
+      submitBtn.onclick=async()=>{const files=Array.from(fileInput.files||[]);if(!files.length){showToast("请先选择图片",false);return}const action=buildActionString();const mode=document.querySelector("input[name=mode]:checked").value;try{if(mode==="sync")await submitSync(files,action);else await submitAsync(files,action)}catch(e){setStatus("请求错误: "+e);showToast("请求失败",false)}finally{setTimeout(()=>setStatus(""),1500)}};
+      async function initActions(){try{const res=await fetch("/actions");if(!res.ok)throw new Error("load failed");const js=await res.json();refreshActionSelect(js.actions||fallbackActions)}catch(_e){refreshActionSelect(fallbackActions)}finally{renderTemplates();renderSteps()}}
+      initActions();
     </script>
   </body>
 </html>

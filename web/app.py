@@ -10,6 +10,7 @@ import zipfile
 import re
 import json
 import socket
+import time
 from urllib.parse import urlsplit, urlunsplit
 
 from  web import tasks
@@ -31,6 +32,26 @@ def _result_path_from_id(result_id: str):
     return os.path.join(RESULT_DIR, f"{result_id.lower()}.jpg")
 
 
+def _meta_path_from_id(result_id: str):
+    if not isinstance(result_id, str):
+        return None
+    if not re.fullmatch(r"[0-9a-fA-F]{32}", result_id):
+        return None
+    return os.path.join(RESULT_DIR, f"{result_id.lower()}.meta.json")
+
+
+def _load_job_meta(job_id: str):
+    p = _meta_path_from_id(job_id)
+    if not p or not os.path.exists(p):
+        return {}
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
 def _load_share_db():
     if not os.path.exists(SHARE_DB_PATH):
         return {}
@@ -40,6 +61,18 @@ def _load_share_db():
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
+
+
+def _read_text_with_fallback(path: str):
+    with open(path, "rb") as f:
+        raw = f.read()
+    for enc in ("utf-8", "gb18030"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    # Last resort: keep service available instead of crashing on bad bytes.
+    return raw.decode("latin-1", errors="replace")
 
 
 def _save_share_db(data: dict):
@@ -86,12 +119,28 @@ def _build_share_base_url(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    with open("web/static/index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
+    return HTMLResponse(_read_text_with_fallback("web/static/index.html"))
+
+
+@app.get("/actions")
+async def list_actions():
+    return JSONResponse(
+        {
+            "actions": tasks.get_supported_actions(),
+            "pipeline_separator": "|",
+            "examples": ["trim|orientation|bleach", "shadow|sharpen"],
+        }
+    )
 
 
 @app.post("/process")
 async def process(file: UploadFile = File(...), action: str = Form(...)):
+    try:
+        tasks.parse_actions(action)
+    except Exception as e:
+        return Response(content=f"Invalid action: {e}", status_code=400)
+
+    t0 = time.perf_counter()
     data = await file.read()
     nparr = np.frombuffer(data, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
@@ -103,6 +152,7 @@ async def process(file: UploadFile = File(...), action: str = Form(...)):
         out = tasks.process_image_bytes(data, action)
     except Exception as e:
         return Response(content=f"Processing error: {e}", status_code=500)
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
 
     # Save sync result so it can join current-session "download all".
     result_id = uuid.uuid4().hex
@@ -112,11 +162,20 @@ async def process(file: UploadFile = File(...), action: str = Form(...)):
             f.write(out)
 
     # Return image bytes and id for client-side session tracking.
-    return Response(content=out, media_type='image/jpeg', headers={"X-Result-Id": result_id})
+    return Response(
+        content=out,
+        media_type='image/jpeg',
+        headers={"X-Result-Id": result_id, "X-Elapsed-Ms": str(elapsed_ms)},
+    )
 
 
 @app.post('/process_async')
 async def process_async(background_tasks: BackgroundTasks, file: UploadFile = File(...), action: str = Form(...)):
+    try:
+        tasks.parse_actions(action)
+    except Exception as e:
+        return Response(content=f"Invalid action: {e}", status_code=400)
+
     data = await file.read()
     job_id = uuid.uuid4().hex
     # schedule background task
@@ -124,16 +183,67 @@ async def process_async(background_tasks: BackgroundTasks, file: UploadFile = Fi
     return JSONResponse({'job_id': job_id, 'status_url': f'/status/{job_id}', 'result_url': f'/result/{job_id}'} )
 
 
+@app.post('/process_async_batch')
+async def process_async_batch(
+    background_tasks: BackgroundTasks,
+    files: list[UploadFile] = File(...),
+    action: str = Form(...),
+):
+    try:
+        tasks.parse_actions(action)
+    except Exception as e:
+        return Response(content=f"Invalid action: {e}", status_code=400)
+
+    jobs = []
+    for up in files:
+        data = await up.read()
+        nparr = np.frombuffer(data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+        if img is None:
+            jobs.append(
+                {
+                    "filename": up.filename or "unknown",
+                    "status": "rejected",
+                    "reason": "invalid image",
+                }
+            )
+            continue
+
+        job_id = uuid.uuid4().hex
+        background_tasks.add_task(tasks.process_job_bg, job_id, data, action)
+        jobs.append(
+            {
+                "filename": up.filename or "unknown",
+                "job_id": job_id,
+                "status": "queued",
+                "status_url": f"/status/{job_id}",
+                "result_url": f"/result/{job_id}",
+            }
+        )
+    return JSONResponse({"action": action, "jobs": jobs})
+
+
 @app.get('/status/{job_id}')
 async def job_status(job_id: str):
     status_path = os.path.join(RESULT_DIR, f'{job_id}.status')
     result_path = os.path.join(RESULT_DIR, f'{job_id}.jpg')
+    meta = _load_job_meta(job_id)
     if os.path.exists(result_path):
-        return JSONResponse({'id': job_id, 'status': 'finished'})
+        out = {'id': job_id, 'status': 'finished'}
+        if "elapsed_ms" in meta:
+            out["elapsed_ms"] = meta.get("elapsed_ms")
+        if "error" in meta:
+            out["error"] = meta.get("error")
+        return JSONResponse(out)
     if os.path.exists(status_path):
         with open(status_path, 'r', encoding='utf-8') as f:
             status = f.read().strip()
-        return JSONResponse({'id': job_id, 'status': status})
+        out = {'id': job_id, 'status': status}
+        if "elapsed_ms" in meta:
+            out["elapsed_ms"] = meta.get("elapsed_ms")
+        if "error" in meta:
+            out["error"] = meta.get("error")
+        return JSONResponse(out)
     return JSONResponse({'id': job_id, 'status': 'queued'})
 
 
@@ -278,6 +388,10 @@ async def clear_results(request: Request):
             status_path = os.path.join(RESULT_DIR, f'{rid.lower()}.status')
             if os.path.exists(status_path):
                 os.remove(status_path)
+                removed += 1
+            meta_path = os.path.join(RESULT_DIR, f'{rid.lower()}.meta.json')
+            if os.path.exists(meta_path):
+                os.remove(meta_path)
                 removed += 1
 
     # Remove share entries pointing to deleted results.
