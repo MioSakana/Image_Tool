@@ -1,35 +1,45 @@
 @echo off
-REM run-conda.bat - 启动 Doc-Image-Tool 的 Windows 脚本 (使用 conda env: dit)
-REM 使用方式：在项目根目录双击或在命令行运行此脚本。
+setlocal EnableExtensions
+
+REM run-conda.bat - Use conda env "dit" to start Doc-Image-Tool (Windows, hidden background process)
 
 echo --------------------------------------------------
-echo Starting Doc-Image-Tool with conda environment: dit
+echo Starting Doc-Image-Tool with conda env: dit
 echo --------------------------------------------------
 
-REM Ensure logs folder exists
 if not exist "web\logs" (
     mkdir "web\logs"
 )
 
-REM Build a timestamp for the logfile using PowerShell (yyyyMMdd_HHmmss)
 for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"`) do set TS=%%i
 set LOGFILE=web\logs\uvicorn_%TS%.log
+set PYEXE=D:\anaconda\envs\dit\python.exe
+set URL=http://127.0.0.1:8000/
 
 echo Logfile: %LOGFILE%
 
-rem Try to activate the conda env; if activation isn't available, fall back to conda run.
-call conda activate dit 2>nul
-if %ERRORLEVEL% NEQ 0 (
-    echo Could not activate 'dit' in this shell; using 'conda run -n dit' and launching in new window.
-    start "Doc-Image-Tool" cmd /c "conda run -n dit python -m uvicorn web.app:app --host 127.0.0.1 --port 8000 --log-level info > %LOGFILE% 2>&1"
-    echo Server started (background). Logs are written to %LOGFILE%
-    goto :end
+if not exist "%PYEXE%" (
+    echo [ERROR] Python not found in env dit: %PYEXE%
+    echo Please check your Anaconda install path or env name.
+    pause
+    exit /b 1
 )
 
-rem Activation succeeded; start server in new window and redirect logs
-start "Doc-Image-Tool" cmd /c "python -m uvicorn web.app:app --host 127.0.0.1 --port 8000 --log-level info > %LOGFILE% 2>&1"
-echo Server started (background). Logs are written to %LOGFILE%
+REM If port 8000 is occupied, stop the listener first.
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr /R /C:":8000 .*LISTENING"') do (
+    echo Port 8000 is occupied by PID %%p, stopping it...
+    taskkill /PID %%p /F >nul 2>nul
+)
 
-:end
+REM Start hidden and redirect logs (no extra terminal window).
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$py='%PYEXE%'; $args='-m uvicorn web.app:app --host 127.0.0.1 --port 8000 --log-level info'; Start-Process -FilePath $py -ArgumentList $args -WorkingDirectory '%CD%' -WindowStyle Hidden -RedirectStandardOutput '%LOGFILE%' -RedirectStandardError '%LOGFILE%'"
+
+echo Server started in hidden background.
+echo URL: %URL%
+echo Logs: %LOGFILE%
+
+REM Wait until port 8000 is listening (max 15s), then open browser.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline=(Get-Date).AddSeconds(15); do { $ready = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue; if ($ready) { Start-Process '%URL%'; break }; Start-Sleep -Milliseconds 300 } while ((Get-Date) -lt $deadline)"
+
 echo Done.
-
+endlocal

@@ -1,140 +1,89 @@
-<p align="left">
-    <span>
-        <b>中文</b>
-    </span>
-    <span> • </span>
-    <a href="README_en.md">
-        English
-    </a>
-</p>
+﻿# Doc-Image-Tool 文档图像处理工具
 
-<h1 align="center">Doc-Image-Tool 文档图像处理工具</h1>
-<br>
-<div align="center">
-  <strong>免费，开源，用于文档图像的处理软件</strong><br>
-</div><br>
+[English](README_en.md)
 
-- **免费**：本项目所有代码开源，完全免费。
-- **方便**：解压即用，离线运行，无需网络。
-- **功能**：漂白 / 文字方向矫正 / 清晰增强 / 笔记去噪美化 / 去阴影 / 扭曲矫正 / 切边增强
+## 项目简介
+Doc-Image-Tool 是一个离线文档图像处理工具，提供 Web 界面进行图片增强与批量处理。
 
-<p align="center"><img src="imgs/main.png"></p>
+## 当前功能
+- 漂白（`bleach`）
+- 文字方向矫正（`orientation`）
+- 清晰增强（`sharpen`）
+- 手写去噪美化（`denoise`）
+- 去阴影（`shadow`）
+- 扭曲矫正（`dewarp`）
+- 切边增强（`trim`）
 
-## 目录
+## Web 端增强功能
+- 多文件批量提交（同步 / 异步）
+- 动作流水线（例如：`trim|orientation|bleach`）
+- 流水线模板一键套用
+- 任务列表筛选、统计、勾选下载
+- 失败任务重试（单条 / 批量）
+- 任务耗时显示与排序
+- 单图分享链接生成
 
-- [漂白](#漂白)
-- [文字方向矫正](#文字方向矫正)
-- [清晰增强](#清晰增强)
-- [笔记去噪美化](#笔记去噪美化)
-- [去阴影](#去阴影)
-- [扭曲矫正](#扭曲矫正)
-- [切边增强](#切边增强)
+## 环境要求
+- Windows
+- Anaconda（推荐）
+- 已创建 conda 环境：`dit`
+- 模型文件放置在 `weights/` 目录
 
-## 开始使用
+## 启动方式（推荐）
+在项目根目录执行（PowerShell）：
 
-目前使用方法，你只需下载本项目源码，找到main.py，运行即可。
-
-weights下的模型包括扭曲矫正、清晰增强以及切边增强三个，百度网盘下载：
-
-链接: https://pan.baidu.com/s/1Ty_JSYcauRX0MiIRuhxx_w 提取码: 92vb
-
-遇到任何问题，请提 [Issue](https://github.com/jiangnanboy/Doc-Image-Tool/issues) ，我会尽可能帮助你。
-
-### 漂白
-对文档图像进行漂白。
-
-<p align="center"><img src="imgs/漂白_raw.png"></p>
-
-<p align="center"><img src="imgs/漂白_result.png"></p>
-
-### 文字方向矫正
-对文档图像进行文字方向矫正。
-
-<p align="center"><img src="imgs/文字方向_raw.png"></p>
-
-<p align="center"><img src="imgs/文字方向_result.png"></p>
-
-### 清晰增强
-对文档图像进行清晰增强，可以对任意一张图像增强清晰度，这会增大图像尺寸。
-
-### 笔记去噪美化
-对手写体笔记图像进行去噪美化。
-
-<p align="center"><img src="imgs/去噪美化_raw.png"></p>
-
-<p align="center"><img src="imgs/去噪美化_result.png"></p>
-
-### 去阴影
-对文档图像去除阴影。
-
-<p align="center"><img src="imgs/去阴影_raw.png"></p>
-
-<p align="center"><img src="imgs/去阴影_result.png"></p>
-
-### 扭曲矫正
-对文档图像进行扭曲矫正。
-
-<p align="center"><img src="imgs/扭曲矫正_raw.png"></p>
-
-<p align="center"><img src="imgs/扭曲矫正_result.png"></p>
-
-### 切边增强
-对文档图像进行切边，提取并突出主体部分。
-
-<p align="center"><img src="imgs/切边_raw.png"></p>
-
-<p align="center"><img src="imgs/切边_result.png"></p>
-
----
-
-### 工程的核心算法源码：
-
+```bat
+.\run-conda.bat
 ```
-function_method
-├─ DocBleach #漂白
-├─ TextOrientationCorrection #文字方向矫正
-├─ DocSharpening #清晰增强
-├─ HandwritingDenoisingBeautifying #笔记去噪美化
-├─ DocShadowRemoval #去阴影
-├─ document_image_dewarping #扭曲矫正
-└─ DocTrimmingEnhancement #切边增强
 
+说明：
+- `run-conda.bat` 会以隐藏后台进程启动服务，不会弹出额外终端窗口。
+- 检测到服务就绪后会自动打开浏览器访问首页（`http://127.0.0.1:8000/`）。
+
+启动后访问：
+- `http://127.0.0.1:8000/`
+
+日志输出目录：
+- `web/logs/`
+
+## 手动启动
+```powershell
+D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 ```
----
 
-## 开发计划
+## 停止服务
+如需释放端口：
 
-<details>
-<summary>已完成的工作</summary>
+```powershell
+# 释放 8000
+$conn = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }
+```
 
-- 漂白
-- 文字方向矫正
-- 清晰增强
-- 笔记去噪美化
-- 去阴影
-- 扭曲矫正
-- 切边增强
+## 项目结构（核心）
+```text
+web/
+  app.py                # FastAPI 入口
+  static/index.html     # 前端页面
+  tasks.py              # 图像处理任务分发
+function_method/        # 各功能算法实现
+weights/                # 模型权重
+```
 
-</details>
+## 常见问题
+1. 首页报编码错误
+- 已支持编码回退读取；建议保持 `web/static/index.html` 为 UTF-8。
 
-##### 正在进行的工作，或者如果你有什么好的功能建议，也请提出【建议】，我会尽量实现功能需求。
+2. 端口被占用（10048）
+- 换端口启动，或先释放占用端口。
 
-- [ ] 去黑点。
-- [ ] 去水印。
-- [ ] 去印章。
-- [ ] 手写体擦除。
+3. conda run 出现编码异常
+- 优先使用 `D:\anaconda\envs\dit\python.exe` 直接启动。
 
-##### 持续及远期计划
+## 致谢
+如果这个项目对你有帮助，欢迎提交 Issue 或 PR。
 
-<details>
-<summary>展开</summary>
-
-以下是未来计划。
-
-- [ ] 重构界面。
-- [ ] 加入更多文档图像处理功能。
-- [ ] 加入OCR功能。
-- [ ] 加入表格识别功能。
-- [ ] 加入文档图像多模态问答功能。
-
-</details>
+## 一键停止（仅 8000）
+```bat
+.\stop-server.bat
+```

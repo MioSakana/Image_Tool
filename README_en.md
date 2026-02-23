@@ -1,153 +1,81 @@
-<p align="left">
-    <a href="README.md">
-        中文
-    </a>
-    <span> • </span>
-    <span>
-        <b>English</b>
-    </span>
-</p>
+﻿# Doc-Image-Tool
 
-<h1 align="center">Doc-Image-Tool Document image processing tool</h1>
-<br>
-<div align="center">
-  <strong>Free, open source, document image processing software</strong><br>
-</div><br>
+[中文](README.md)
 
-- **Free**：All the code in this project is open source and completely free.
-- **Convenience**：Decompress and run offline without a network.
-- **Function**：DocBleach / TextOrientationCorrection / DocSharpening / HandwritingDenoisingBeautifying / DocShadowRemoval / document_image_dewarping / DocTrimmingEnhancement
+## Overview
+Doc-Image-Tool is an offline document image processing tool with a web UI for enhancement and batch workflows.
 
-<p align="center"><img src="imgs/main.png"></p>
+## Current Features
+- Bleach (`bleach`)
+- Text orientation correction (`orientation`)
+- Sharpen (`sharpen`)
+- Handwriting denoise/beautify (`denoise`)
+- Shadow removal (`shadow`)
+- Dewarp (`dewarp`)
+- Trim enhancement (`trim`)
 
-## catalog
+## Web Enhancements
+- Multi-file batch submit (sync / async)
+- Action pipeline support (for example: `trim|orientation|bleach`)
+- One-click pipeline templates
+- Task filtering, statistics, and selected download
+- Failed task retry (single / batch)
+- Task elapsed-time display and sorting
+- Share link generation for single result
 
-- [DocBleach](#DocBleach)
-- [TextOrientationCorrection](#TextOrientationCorrection)
-- [DocSharpening](#DocSharpening)
-- [HandwritingDenoisingBeautifying](#HandwritingDenoisingBeautifying)
-- [DocShadowRemoval](#DocShadowRemoval)
-- [document_image_dewarping](#document_image_dewarping)
-- [DocTrimmingEnhancement](#DocTrimmingEnhancement)
+## Requirements
+- Windows
+- Anaconda (recommended)
+- Existing conda environment: `dit`
+- Model files under `weights/`
 
-## usage
+## Quick Start (Recommended)
+Run in project root (PowerShell):
 
-To run the web app, download the source code, then run `python -m uvicorn web.app:app --host 127.0.0.1 --port 8000` in the project root and open http://127.0.0.1:8000/ .
-
-The weights model includes distortion correction, clarity enhancement and cutting edge enhancement.Baidu web disk download:
-
-link: https://pan.baidu.com/s/1Ty_JSYcauRX0MiIRuhxx_w  password: 92vb
-
-Any problems，please [Issue](https://github.com/jiangnanboy/Doc-Image-Tool/issues) ，I'll help you as much as I can.。
-
-### DocBleach
-Bleach the document image.
-
-<p align="center"><img src="imgs/漂白_raw.png"></p>
-
-<p align="center"><img src="imgs/漂白_result.png"></p>
-
-### TextOrientationCorrection
-Text orientation correction of document images.
-
-<p align="center"><img src="imgs/文字方向_raw.png"></p>
-
-<p align="center"><img src="imgs/文字方向_result.png"></p>
-
-### DocSharpening
-Sharpening a document image enhances the sharpness of any image, which increases the image size.
-
-### HandwritingDenoisingBeautifying
-De-noising and beautifying handwritten note images.
-
-<p align="center"><img src="imgs/去噪美化_raw.png"></p>
-
-<p align="center"><img src="imgs/去噪美化_result.png"></p>
-
-### DocShadowRemoval
-Remove shadow from document image.
-
-<p align="center"><img src="imgs/去阴影_raw.png"></p>
-
-<p align="center"><img src="imgs/去阴影_result.png"></p>
-
-### document_image_dewarping
-Distortion correction of document images.
-
-<p align="center"><img src="imgs/扭曲矫正_raw.png"></p>
-
-<p align="center"><img src="imgs/扭曲矫正_result.png"></p>
-
-### DocTrimmingEnhancement
-Trim the document image, extract and highlight the main part.
-
-<p align="center"><img src="imgs/切边_raw.png"></p>
-
-<p align="center"><img src="imgs/切边_result.png"></p>
-
----
-
-### Project core algorithm source code：
-
+```bat
+.\run-conda.bat
 ```
-function_method
-├─ DocBleach #漂白
-├─ TextOrientationCorrection #文字方向矫正
-├─ DocSharpening #清晰增强
-├─ HandwritingDenoisingBeautifying #笔记去噪美化
-├─ DocShadowRemoval #去阴影
-├─ document_image_dewarping #扭曲矫正
-└─ DocTrimmingEnhancement #切边增强
 
+Notes:
+- `run-conda.bat` starts the server as a hidden background process (no extra terminal window).
+- It automatically opens the browser to `http://127.0.0.1:8000/` after the server is ready.
+
+Then open:
+- `http://127.0.0.1:8000/`
+
+Logs are written to:
+- `web/logs/`
+
+## Manual Start
+```powershell
+D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 ```
----
 
-## sponsor
+## Stop Server (Port 8000 only)
+```bat
+.\stop-server.bat
+```
 
-Doc-Image-Tool, The project is developed and maintained by author [jiangnanboy](https://github.com/jiangnanboy) in his spare time. If you like this software, you are welcome to sponsor it, which is also one of the motivation of the author.
+## Core Structure
+```text
+web/
+  app.py                # FastAPI entry
+  static/index.html     # Frontend page
+  tasks.py              # Task dispatch / processing
+function_method/        # Algorithm implementations
+weights/                # Model weights
+```
 
-- Domestic users sponsor authors through [爱发电](https://afdian.com/a/jiangnanboy) .
+## Common Issues
+1. Unicode decode error on `/`
+- Keep `web/static/index.html` in UTF-8.
 
-## development plan
+2. Port already in use (`10048`)
+- Change port, or release the occupied port first.
 
-<details>
-<summary>finished work</summary>
+3. `conda run` encoding issues on Windows
+- Prefer direct Python path:
+  `D:\anaconda\envs\dit\python.exe ...`
 
-- DocBleach
-- TextOrientationCorrection
-- DocSharpening
-- HandwritingDenoisingBeautifying
-- DocShadowRemoval
-- document_image_dewarping
-- DocTrimmingEnhancement
-
-</details>
-
-##### Work in progress, or if you have any good functional suggestions, please also put forward [suggestions], I will try my best to implement the functional requirements.
-
-- [ ] Blackspot removal
-- [ ] In paint 
-- [ ] Remove stamp
-- [ ] Handwriting erasure.
-
-##### Continuity Plan
-
-<details>
-<summary>Expand</summary>
-
-The following are some of the future ongoing plans.
-
-- [ ] Reconstructs software interface
-- [ ] Add more document image processing capabilities
-- [ ] Added the OCR function
-- [ ] Added table recognition function
-- [ ] Added document image multimodal question answering function
-
-</details>
-
-
-## Contact me
-
-1、github：https://github.com/jiangnanboy
-
-2、QQ:2229029156
+## Support
+If this project helps you, feel free to open an Issue or PR.
