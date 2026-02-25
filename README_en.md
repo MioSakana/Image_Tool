@@ -1,4 +1,4 @@
-﻿# Doc-Image-Tool
+# Doc-Image-Tool
 
 [中文](README.md)
 
@@ -14,14 +14,21 @@ Doc-Image-Tool is an offline document image processing tool with a web UI for en
 - Dewarp (`dewarp`)
 - Trim enhancement (`trim`)
 
-## Web Enhancements
-- Multi-file batch submit (sync / async)
-- Action pipeline support (for example: `trim|orientation|bleach`)
-- One-click pipeline templates
-- Task filtering, statistics, and selected download
-- Failed task retry (single / batch)
-- Task elapsed-time display and sorting
-- Share link generation for single result
+## Web Enhancements（中文界面说明）
+- 多文件批量提交（自动分流：单图实时预览，多图后台队列）
+- 动作流水线（例如：`trim|orientation|bleach`）
+- 流水线模板一键套用
+- 任务列表筛选、统计、勾选下载
+- 失败任务重试（单条 / 批量）
+- 任务耗时显示与排序
+- 单图分享链接生成
+- 多图任务支持点击缩略图进入原图/结果对比预览
+- 批量任务点击预览后自动高亮当前行
+
+## 界面处理逻辑
+- 已取消“同步/异步”手动切换按钮。
+- 仅选择 1 张图片时：自动走实时处理，并直接显示对比预览。
+- 选择多张图片时：自动走后台队列处理；完成后可点击任务行缩略图查看对比预览。
 
 ## Requirements
 - Windows

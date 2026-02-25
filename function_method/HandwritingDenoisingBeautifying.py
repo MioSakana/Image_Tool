@@ -123,8 +123,13 @@ value.
     cmin = rgb.min(axis=axis).astype(np.float32)
     delta = cmax - cmin
 
-    saturation = delta.astype(np.float32) / cmax.astype(np.float32)
-    saturation = np.where(cmax == 0, 0, saturation)
+    # Safe divide to avoid RuntimeWarning when cmax is zero.
+    saturation = np.divide(
+        delta.astype(np.float32),
+        cmax.astype(np.float32),
+        out=np.zeros_like(cmax, dtype=np.float32),
+        where=(cmax != 0),
+    )
 
     value = cmax/255.0
 
@@ -548,4 +553,3 @@ def docscan_main(img_cv, options):
     output_img = output_img.convert('RGB') # 转为rgb
     output_img = np.array(output_img)[:, :, ::-1] # 转为bgr，因为后面会转成rgb
     return output_img
-

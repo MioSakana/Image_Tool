@@ -78,7 +78,8 @@ def unwarp(img, bm):
     img = np.expand_dims(img, 0)
     img = torch.from_numpy(img).double()
 
-    res = F.grid_sample(input=img, grid=bm)
+    # Explicit align_corners to avoid runtime warning and keep stable behavior.
+    res = F.grid_sample(input=img, grid=bm, align_corners=False)
     res = res[0].numpy().transpose((1, 2, 0))
 
     return res
@@ -108,5 +109,4 @@ def dewarping_pred(img):
     return uwpred[:,:,::-1]
 
 wc_model, bm_model = load(wc_model_path, bm_model_path)
-
 

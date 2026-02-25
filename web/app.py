@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Request
-from fastapi.responses import Response, HTMLResponse, JSONResponse, FileResponse, StreamingResponse
+from fastapi.responses import Response, JSONResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import numpy as np
 import cv2
@@ -63,18 +63,6 @@ def _load_share_db():
         return {}
 
 
-def _read_text_with_fallback(path: str):
-    with open(path, "rb") as f:
-        raw = f.read()
-    for enc in ("utf-8", "gb18030"):
-        try:
-            return raw.decode(enc)
-        except UnicodeDecodeError:
-            continue
-    # Last resort: keep service available instead of crashing on bad bytes.
-    return raw.decode("latin-1", errors="replace")
-
-
 def _save_share_db(data: dict):
     with open(SHARE_DB_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -117,9 +105,10 @@ def _build_share_base_url(request: Request):
     return base
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def index():
-    return HTMLResponse(_read_text_with_fallback("web/static/index.html"))
+    # Serve raw file bytes to avoid any charset re-encoding/content-length mismatch.
+    return FileResponse("web/static/index.html", media_type="text/html; charset=utf-8")
 
 
 @app.get("/actions")
@@ -228,17 +217,22 @@ async def job_status(job_id: str):
     status_path = os.path.join(RESULT_DIR, f'{job_id}.status')
     result_path = os.path.join(RESULT_DIR, f'{job_id}.jpg')
     meta = _load_job_meta(job_id)
-    if os.path.exists(result_path):
-        out = {'id': job_id, 'status': 'finished'}
+    if os.path.exists(status_path):
+        with open(status_path, 'r', encoding='utf-8') as f:
+            status = f.read().strip()
+        # Guard against race: mark finished only when status says finished
+        # and the final result file already exists.
+        if status == "finished" and not os.path.exists(result_path):
+            status = "processing"
+        out = {'id': job_id, 'status': status}
         if "elapsed_ms" in meta:
             out["elapsed_ms"] = meta.get("elapsed_ms")
         if "error" in meta:
             out["error"] = meta.get("error")
         return JSONResponse(out)
-    if os.path.exists(status_path):
-        with open(status_path, 'r', encoding='utf-8') as f:
-            status = f.read().strip()
-        out = {'id': job_id, 'status': status}
+    if os.path.exists(result_path):
+        # Backward compatibility for legacy files without status sidecar.
+        out = {'id': job_id, 'status': 'finished'}
         if "elapsed_ms" in meta:
             out["elapsed_ms"] = meta.get("elapsed_ms")
         if "error" in meta:
@@ -316,7 +310,7 @@ async def shared_page(token: str):
     </div>
   </body>
 </html>"""
-    return HTMLResponse(content=html)
+    return Response(content=html.encode("utf-8"), media_type="text/html; charset=utf-8")
 
 
 @app.get('/share/{token}/image')

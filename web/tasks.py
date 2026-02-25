@@ -122,6 +122,7 @@ def process_job_bg(job_id: str, data: bytes, action: str):
     """BackgroundTasks target: write status file, process and save result JPEG."""
     status_path = os.path.join(RESULT_DIR, f'{job_id}.status')
     result_path = os.path.join(RESULT_DIR, f'{job_id}.jpg')
+    temp_result_path = os.path.join(RESULT_DIR, f'{job_id}.jpg.tmp')
     meta_path = os.path.join(RESULT_DIR, f'{job_id}.meta.json')
     t0 = time.perf_counter()
 
@@ -153,15 +154,27 @@ def process_job_bg(job_id: str, data: bytes, action: str):
 
         out = _dispatch_image(img, action)
 
+        # Encode to JPEG bytes first, then atomically replace target file.
+        # This avoids OpenCV writer detection issues with temporary suffixes.
         if len(out.shape) == 2:
-            cv2.imwrite(result_path, out)
+            ok, buf = cv2.imencode(".jpg", out)
         else:
-            cv2.imwrite(result_path, out[:, :, ::-1])
+            ok, buf = cv2.imencode(".jpg", out[:, :, ::-1])
+        if not ok:
+            raise RuntimeError("Failed to encode result image")
+        with open(temp_result_path, "wb") as wf:
+            wf.write(buf.tobytes())
+        os.replace(temp_result_path, result_path)
 
         with open(status_path, 'w', encoding='utf-8') as f:
             f.write('finished')
         _write_meta("finished")
     except Exception as e:
+        if os.path.exists(temp_result_path):
+            try:
+                os.remove(temp_result_path)
+            except OSError:
+                pass
         with open(status_path, 'w', encoding='utf-8') as f:
             f.write('error')
         _write_meta("error", str(e))
