@@ -25,20 +25,36 @@ def load(wc_model_path, bm_model_path):
     wc_model = get_model_stage_one(wc_n_classes, in_channels=3)
     if DEVICE.type == 'cpu':
         try:
-            wc_state = convert_state_dict(torch.load(wc_model_path, map_location='cpu')['model_state'])
+            try:
+                wc_ckpt = torch.load(wc_model_path, map_location='cpu', weights_only=True)
+            except TypeError:
+                wc_ckpt = torch.load(wc_model_path, map_location='cpu')
+            wc_state = convert_state_dict(wc_ckpt['model_state'])
             print("翘曲校正模型加载成功")
         except Exception as e:
             print(f"警告：翘曲校正模型加载失败 ({wc_model_path})，错误: {e}")
             wc_state = None  # 或设置一个标志，后续逻辑跳过该功能    
     else:
-        wc_state = convert_state_dict(torch.load(wc_model_path)['model_state'])
+        try:
+            wc_ckpt = torch.load(wc_model_path, weights_only=True)
+        except TypeError:
+            wc_ckpt = torch.load(wc_model_path)
+        wc_state = convert_state_dict(wc_ckpt['model_state'])
     wc_model.load_state_dict(wc_state)
     wc_model.eval()
     bm_model = get_model_stage_two(bm_n_classes, in_channels=3)
     if DEVICE.type == 'cpu':
-        bm_state = convert_state_dict(torch.load(bm_model_path, map_location='cpu')['model_state'])
+        try:
+            bm_ckpt = torch.load(bm_model_path, map_location='cpu', weights_only=True)
+        except TypeError:
+            bm_ckpt = torch.load(bm_model_path, map_location='cpu')
+        bm_state = convert_state_dict(bm_ckpt['model_state'])
     else:
-        bm_state = convert_state_dict(torch.load(bm_model_path)['model_state'])
+        try:
+            bm_ckpt = torch.load(bm_model_path, weights_only=True)
+        except TypeError:
+            bm_ckpt = torch.load(bm_model_path)
+        bm_state = convert_state_dict(bm_ckpt['model_state'])
     bm_model.load_state_dict(bm_state)
     bm_model.eval()
 
@@ -92,6 +108,5 @@ def dewarping_pred(img):
     return uwpred[:,:,::-1]
 
 wc_model, bm_model = load(wc_model_path, bm_model_path)
-
 
 

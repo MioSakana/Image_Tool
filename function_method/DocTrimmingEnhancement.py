@@ -46,7 +46,11 @@ def load_model(num_classes=2, model_name="mbv3", checkpoint_path=None):
     else:
         model = deeplabv3_resnet50(num_classes=num_classes)
     model.to(DEVICE)
-    checkpoints = torch.load(checkpoint_path, map_location=DEVICE)
+    try:
+        checkpoints = torch.load(checkpoint_path, map_location=DEVICE, weights_only=True)
+    except TypeError:
+        # Backward compatibility for older torch versions without weights_only.
+        checkpoints = torch.load(checkpoint_path, map_location=DEVICE)
     model.load_state_dict(checkpoints, strict=False)
     model.eval()
     return model
@@ -157,7 +161,6 @@ def doc_trimming_enhancement_pred(image, image_size=384, BUFFER=10):
     return final[:,:,::-1]
 
 doc_trimming_enhancement_model = load_model(2, model_name='mbv3', checkpoint_path=model_path)
-
 
 
 
