@@ -1,4 +1,4 @@
-# Doc-Image-Tool
+﻿# Doc-Image-Tool
 
 [中文](README.md)
 
@@ -45,17 +45,20 @@ Run in project root (PowerShell):
 
 Notes:
 - `run-conda.bat` starts the server as a hidden background process (no extra terminal window).
+- The server listens on `0.0.0.0:8000` to allow LAN access and sharing.
 - It automatically opens the browser to `http://127.0.0.1:8000/` after the server is ready.
+- The script prints a LAN URL for other devices on the same network.
 
 Then open:
-- `http://127.0.0.1:8000/`
+- Local: `http://127.0.0.1:8000/`
+- LAN: use the printed LAN URL (for example `http://192.168.1.10:8000/`)
 
 Logs are written to:
 - `web/logs/`
 
 ## Manual Start
 ```powershell
-D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 0.0.0.0 --port 8000
 ```
 
 ## Stop Server (Port 8000 only)
@@ -83,6 +86,13 @@ weights/                # Model weights
 3. `conda run` encoding issues on Windows
 - Prefer direct Python path:
   `D:\anaconda\envs\dit\python.exe ...`
+
+4. Share link not accessible on other devices
+- Ensure the server listens on `0.0.0.0`.
+- Allow port 8000 in Windows Firewall (Admin PowerShell):
+```bat
+netsh advfirewall firewall add rule name="Doc-Image-Tool 8000" dir=in action=allow protocol=TCP localport=8000 profile=any
+```
 
 ## Support
 If this project helps you, feel free to open an Issue or PR.

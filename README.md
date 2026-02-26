@@ -1,4 +1,4 @@
-# Doc-Image-Tool 文档图像处理工具
+﻿# Doc-Image-Tool 文档图像处理工具
 
 [English](README_en.md)
 
@@ -45,17 +45,20 @@ Doc-Image-Tool 是一个离线文档图像处理工具，提供 Web 界面进行
 
 说明：
 - `run-conda.bat` 会以隐藏后台进程启动服务，不会弹出额外终端窗口。
+- 服务会监听 `0.0.0.0:8000`，支持局域网设备访问与分享。
 - 检测到服务就绪后会自动打开浏览器访问首页（`http://127.0.0.1:8000/`）。
+- 脚本会尝试输出局域网访问地址（LAN URL），用于在其他设备打开分享链接。
 
 启动后访问：
-- `http://127.0.0.1:8000/`
+- 本机：`http://127.0.0.1:8000/`
+- 局域网：以脚本输出的 LAN URL 为准（例如 `http://192.168.1.10:8000/`）
 
 日志输出目录：
 - `web/logs/`
 
 ## 手动启动
 ```powershell
-D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+D:\anaconda\envs\dit\python.exe -m uvicorn web.app:app --host 0.0.0.0 --port 8000
 ```
 
 ## 停止服务
@@ -86,6 +89,13 @@ weights/                # 模型权重
 
 3. conda run 出现编码异常
 - 优先使用 `D:\anaconda\envs\dit\python.exe` 直接启动。
+
+4. 其他设备无法打开分享链接
+- 确认服务使用 `0.0.0.0` 监听。
+- Windows 防火墙放行 8000 端口（管理员 PowerShell）：
+```bat
+netsh advfirewall firewall add rule name="Doc-Image-Tool 8000" dir=in action=allow protocol=TCP localport=8000 profile=any
+```
 
 ## 致谢
 如果这个项目对你有帮助，欢迎提交 Issue 或 PR。
