@@ -16,6 +16,7 @@ set LOGFILE=web\logs\uvicorn_%TS%.log
 set ERRFILE=web\logs\uvicorn_%TS%.err.log
 set PYEXE=
 set URL=http://127.0.0.1:8000/
+set LAN_URL=
 
 echo Logfile: %LOGFILE%
 echo ErrorLog: %ERRFILE%
@@ -52,8 +53,12 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr /R /C:":8000 .*LISTENING"') d
     taskkill /PID %%p /F >nul 2>nul
 )
 
+REM Resolve LAN IP for sharing (best effort)
+for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "(Get-NetIPAddress -AddressFamily IPv4 ^| Where-Object { $_.IPAddress -notlike '169.254.*' -and $_.IPAddress -ne '127.0.0.1' } ^| Select-Object -First 1 -ExpandProperty IPAddress)"`) do set LAN_IP=%%i
+if defined LAN_IP set LAN_URL=http://%LAN_IP%:8000/
+
 REM Start hidden and redirect logs (no extra terminal window).
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$py='%PYEXE%'; $args='-m uvicorn web.app:app --host 127.0.0.1 --port 8000 --log-level warning'; Start-Process -FilePath $py -ArgumentList $args -WorkingDirectory '%CD%' -WindowStyle Hidden -RedirectStandardOutput '%LOGFILE%' -RedirectStandardError '%ERRFILE%'"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$py='%PYEXE%'; $args='-m uvicorn web.app:app --host 0.0.0.0 --port 8000 --log-level warning'; Start-Process -FilePath $py -ArgumentList $args -WorkingDirectory '%CD%' -WindowStyle Hidden -RedirectStandardOutput '%LOGFILE%' -RedirectStandardError '%ERRFILE%'"
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to launch python process.
     echo [HINT] Check error log: %ERRFILE%
@@ -62,6 +67,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo Server started in hidden background.
 echo URL: %URL%
+if defined LAN_URL echo LAN URL: %LAN_URL%
 echo Logs: %LOGFILE%
 echo Error Logs: %ERRFILE%
 
