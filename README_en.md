@@ -46,12 +46,12 @@ Run in project root (PowerShell):
 Notes:
 - `run-conda.bat` starts the server as a hidden background process (no extra terminal window).
 - The server listens on `0.0.0.0:8000` to allow LAN access and sharing.
-- It automatically opens the browser to `http://127.0.0.1:8000/` after the server is ready.
-- The script prints a LAN URL for other devices on the same network.
+- After startup, it tries to open `http://127.0.0.1:8000/` automatically after about 1 second.
+- The script does not print a LAN URL; use your machine IP (for example `http://192.168.1.10:8000/`) on other devices.
 
 Then open:
 - Local: `http://127.0.0.1:8000/`
-- LAN: use the printed LAN URL (for example `http://192.168.1.10:8000/`)
+- LAN: `http://<your-local-ip>:8000/` (for example `http://192.168.1.10:8000/`)
 
 Logs are written to:
 - `web/logs/`
